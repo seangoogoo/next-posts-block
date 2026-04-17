@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock;
+namespace NextPostsBlock;
 
 use WP_Block;
 use WP_REST_Request;

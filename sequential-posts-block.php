@@ -11,7 +11,7 @@
  * Text Domain:       sequential-posts-block
  * Domain Path:       /languages
  *
- * @package SequentialPostsBlock
+ * @package NextPostsBlock
  */
 
 declare(strict_types=1);
@@ -29,9 +29,9 @@ if (file_exists(SEQUENTIAL_POSTS_BLOCK_PATH . 'vendor/autoload.php')) {
     require_once SEQUENTIAL_POSTS_BLOCK_PATH . 'vendor/autoload.php';
 }
 
-// Fallback manual autoload for PSR-4 SequentialPostsBlock\ namespace
+// Fallback manual autoload for PSR-4 NextPostsBlock\ namespace
 spl_autoload_register(static function (string $class): void {
-    $prefix = 'SequentialPostsBlock\\';
+    $prefix = 'NextPostsBlock\\';
     if (strpos($class, $prefix) !== 0) {
         return;
     }
@@ -43,5 +43,5 @@ spl_autoload_register(static function (string $class): void {
 });
 
 add_action('plugins_loaded', static function (): void {
-    (new \SequentialPostsBlock\Plugin())->boot();
+    (new \NextPostsBlock\Plugin())->boot();
 });

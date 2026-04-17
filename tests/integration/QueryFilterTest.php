@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock\Tests\Integration;
+namespace NextPostsBlock\Tests\Integration;
 
 use ReflectionProperty;
-use SequentialPostsBlock\QueryFilter;
+use NextPostsBlock\QueryFilter;
 use WP_Block;
 use WP_REST_Request;
 use WP_UnitTestCase;

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock;
+namespace NextPostsBlock;
 
 /**
  * Retrieves and caches the canonical ordered list of published post IDs

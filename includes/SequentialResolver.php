@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock;
+namespace NextPostsBlock;
 
 /**
  * Pure domain logic: computes N posts following (or preceding) a given post

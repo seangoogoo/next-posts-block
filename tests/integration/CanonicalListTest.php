@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock\Tests\Integration;
+namespace NextPostsBlock\Tests\Integration;
 
-use SequentialPostsBlock\CanonicalList;
+use NextPostsBlock\CanonicalList;
 use WP_UnitTestCase;
 
 final class CanonicalListTest extends WP_UnitTestCase

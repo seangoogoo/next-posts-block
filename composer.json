@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "SequentialPostsBlock\\": "includes/"
+            "NextPostsBlock\\": "includes/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "SequentialPostsBlock\\Tests\\": "tests/"
+            "NextPostsBlock\\Tests\\": "tests/"
         }
     },
     "config": {
