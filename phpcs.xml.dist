@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="SequentialPostsBlock">
-    <description>Coding standard for Sequential Posts Block plugin.</description>
+<ruleset name="NextPostsBlock">
+    <description>Coding standard for Next Posts Block plugin.</description>
 
     <file>includes</file>
     <file>sequential-posts-block.php</file>
