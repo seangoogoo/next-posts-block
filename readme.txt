@@ -31,7 +31,7 @@ Because Next Posts reuses the native Query Loop block, authors configure the car
 
 1. Install through the admin: Plugins → Add New → search for "Next Posts — Query Loop Block" → Install → Activate.
 2. Or upload the plugin folder to `/wp-content/plugins/` and activate it through the Plugins menu.
-3. In the Block Editor, insert the "Next Posts" block on any single-post template or in post content. The block variation appears in the inserter under "Next Posts".
+3. In the Block Editor, insert the "Next Posts" block on a single-post template, or directly in a post. The block variation appears in the inserter under "Next Posts".
 4. Configure the number of posts (1–10), the sort order, and the card template through the block's sidebar settings.
 
 == Frequently Asked Questions ==
@@ -54,7 +54,7 @@ When no single-post context is available, the block renders the first N items of
 
 = Does it work with WPML or Polylang? =
 
-Not natively. The block's canonical list is built with `WP_Query` using `suppress_filters => true`, so language filters from multilingual plugins are not applied. As a result, a multilingual site may show posts from other languages in the sequence. A future release may add explicit multilingual support.
+Not natively. The block builds its list in a way that bypasses the language filters used by multilingual plugins, so a multilingual site may show posts from other languages in the sequence. Native multilingual support may be added in a future release.
 
 = Can I use it with custom post types? =
 
@@ -62,7 +62,7 @@ Yes. The block works with any post type registered as `public`.
 
 = Can I exclude sticky posts from the sequence? =
 
-Yes. Select the block and enable "Exclude sticky posts from the sequence" in the "Sequential settings" sidebar panel. Sticky posts are always neutralized in the result ordering so the rendered count never exceeds the configured number of items.
+When enabled, sticky posts are removed from the sequence. Sticky posts never inflate the item count beyond the number you configured, regardless of this setting.
 
 == Screenshots ==
 
