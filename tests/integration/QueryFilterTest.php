@@ -363,13 +363,27 @@ final class QueryFilterTest extends WP_UnitTestCase
 			'exclude_sticky' => false,
 		];
 		foreach ($defaults as $name => $value) {
-			(new ReflectionProperty(QueryFilter::class, $name))->setValue(null, $value);
+			$this->static_prop($name)->setValue(null, $value);
 		}
 	}
 
 	/** @return mixed */
 	private function get_static(string $name)
 	{
-		return (new ReflectionProperty(QueryFilter::class, $name))->getValue();
+		return $this->static_prop($name)->getValue();
+	}
+
+	/**
+	 * PHP 7.4 still requires setAccessible() before reflecting private
+	 * members. On 8.1+ the call is a no-op (deprecated on 8.5+), so we
+	 * gate it behind a version check to keep both CI and local dev quiet.
+	 */
+	private function static_prop(string $name): ReflectionProperty
+	{
+		$prop = new ReflectionProperty(QueryFilter::class, $name);
+		if (PHP_VERSION_ID < 80100) {
+			$prop->setAccessible(true);
+		}
+		return $prop;
 	}
 }
