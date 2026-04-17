@@ -19,7 +19,7 @@ msgstr ""
 #. Plugin Name of the plugin
 #: next-posts-block.php
 msgid "Next Posts — Query Loop Block"
-msgstr "Articles suivants — Bloc Query Loop"
+msgstr "Publications suivantes — Bloc Query Loop"
 
 #. Description of the plugin
 #: next-posts-block.php
@@ -28,7 +28,7 @@ msgid ""
 "current post, with wrap-around. Supports ordering by date or title."
 msgstr ""
 "Variation du Query Loop qui affiche les publications séquentiellement par "
-"rapport à la publication actuelle, avec rebouclage. Tri par date ou par "
+"rapport à la publication actuelle, avec retour au début. Tri par date ou par "
 "titre."
 
 #. Author of the plugin
@@ -38,7 +38,7 @@ msgstr ""
 
 #: build/index.js:1 src/variation.js:16
 msgid "Next Posts"
-msgstr "Articles suivants"
+msgstr "Publications suivantes"
 
 #: build/index.js:1 src/variation.js:17
 msgid ""
@@ -46,7 +46,7 @@ msgid ""
 "with wrap-around."
 msgstr ""
 "Affiche les N publications qui suivent (ou précèdent) séquentiellement la "
-"publication actuelle, avec rebouclage."
+"publication actuelle, avec retour au début."
 
 #: build/index.js:1 src/variation.js:24
 msgid "next"
@@ -62,11 +62,11 @@ msgstr "séquence"
 
 #: build/index.js:1 src/variation.js:27
 msgid "related"
-msgstr "associé"
+msgstr "connexe"
 
 #: build/index.js:1 src/inspector-controls.js:48
 msgid "Sequential settings"
-msgstr "Réglages séquentiels"
+msgstr "Réglages de séquence"
 
 #: build/index.js:1 src/inspector-controls.js:56
 msgid "Exclude sticky posts from the sequence"
