@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<ruleset name="SequentialPostsBlock">
+    <description>Coding standard for Sequential Posts Block plugin.</description>
+
+    <file>includes</file>
+    <file>sequential-posts-block.php</file>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <rule ref="WordPress-Core"/>
+    <rule ref="WordPress-Docs"/>
+
+    <config name="testVersion" value="7.4-"/>
+    <config name="minimum_wp_version" value="6.0"/>
+</ruleset>

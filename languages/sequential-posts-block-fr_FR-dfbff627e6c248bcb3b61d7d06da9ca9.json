@@ -1,0 +1,26 @@
+{
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "0": "",
+            "Sequential Posts": [
+                "Publications séquentielles"
+            ],
+            "next": [
+                "suivant"
+            ],
+            "previous": [
+                "précédent"
+            ],
+            "sequence": [
+                "séquence"
+            ],
+            "related": [
+                "associé"
+            ],
+            "Displays the N posts that sequentially follow (or precede) the current post, with wrap-around.": [
+                "Affiche les N publications qui suivent (ou précèdent) séquentiellement la publication actuelle, avec rebouclage."
+            ]
+        }
+    }
+}

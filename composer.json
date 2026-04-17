@@ -1,0 +1,37 @@
+{
+    "name": "your-org/sequential-posts-block",
+    "description": "Gutenberg block: N posts sequentially following the current post, with wrap-around.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "yoast/phpunit-polyfills": "^1.1",
+        "wp-coding-standards/wpcs": "^3.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "SequentialPostsBlock\\": "includes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SequentialPostsBlock\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml.dist",
+        "test:unit": "phpunit --configuration phpunit.xml.dist --testsuite unit",
+        "lint": "phpcs --standard=phpcs.xml.dist",
+        "lint:fix": "phpcbf --standard=phpcs.xml.dist"
+    }
+}
