@@ -23,7 +23,11 @@ final class ContextDetector
         }
 
         if (defined('REST_REQUEST') && REST_REQUEST) {
-            $from_query = filter_input(INPUT_GET, 'sequential_context_post', FILTER_VALIDATE_INT);
+            $raw = $_GET['sequential_context_post'] ?? null;
+            if ($raw === null) {
+                return null;
+            }
+            $from_query = filter_var(wp_unslash($raw), FILTER_VALIDATE_INT);
             return $from_query ?: null;
         }
 
