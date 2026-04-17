@@ -4,7 +4,7 @@ Tags: block, gutenberg, query-loop, next-post, related-posts
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Query Loop variation that displays posts sequentially relative to the current po
 
 == Description ==
 
-Variation of the native Query Loop block. Appears in the inserter as "Sequential Posts". On any single-post page, it renders the N posts that come after (or before) the current one in the chosen sort order, with silent wrap-around at list boundaries.
+Variation of the native Query Loop block. Appears in the inserter as "Sequential Posts". On any single-post page, it renders the N posts that come after (or before) the current one in the chosen sort order, with silent wrap-around at list boundaries. When used outside a singular context (archives, home, search), it falls back to the first N items of the canonical list in the chosen sort order.
 
 **Key features:**
 
@@ -70,6 +70,10 @@ No rebuild needed. Changes are picked up on the next page load.
 * Update `.po` files as needed, then `msgfmt -o languages/sequential-posts-block-{locale}.mo languages/sequential-posts-block-{locale}.po`
 
 == Changelog ==
+
+= 1.1.0 =
+* Non-singular fallback: the block now renders the first N items of the canonical list (in the chosen sort order) when used on archives, home, search, or any page without a singular post context. Previously rendered empty.
+* Editor: REST preview stays consistent with the frontend, even when no context post is available (e.g. editing a template in the Site Editor).
 
 = 1.0.0 =
 * Initial release.

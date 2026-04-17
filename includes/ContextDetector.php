@@ -10,7 +10,8 @@ namespace SequentialPostsBlock;
  *  - Classic admin editor via global $post
  *
  * Returns null on archives, home, search, or any context without a concrete
- * post — callers should short-circuit rendering when null.
+ * post. Since v1.1.0, callers fall back to the first N items of the canonical
+ * list instead of short-circuiting.
  */
 final class ContextDetector
 {

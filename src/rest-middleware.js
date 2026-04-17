@@ -1,7 +1,9 @@
 /**
- * apiFetch middleware: appends sequential_context_post, sequential_order,
- * and sequential_orderby to REST calls so the editor preview reflects
- * the correct sequential posts with the user's chosen sort order.
+ * apiFetch middleware: appends the sequential_block marker plus sort params
+ * (and sequential_context_post when available) to REST calls so the editor
+ * preview reflects the correct sequential posts. When no context post is
+ * available (e.g. editing a template), the server falls back to the first
+ * N items of the canonical list — same behavior as the frontend.
  */
 
 import apiFetch from '@wordpress/api-fetch';
@@ -11,10 +13,11 @@ const NAMESPACE = 'sequential-posts-block/query';
 const POST_TYPE_REST_PATTERN = /\/wp\/v2\/([a-z0-9_-]+)(\?|$)/i;
 
 /**
- * Recursively finds the first Sequential Posts block in the editor
- * and reads its orderBy/order. Falls back to date/asc.
+ * Recursively finds the first Sequential Posts block in the editor and
+ * returns its orderBy/order. Returns null if the variation is absent from
+ * the block tree — signals that this REST call is NOT ours to augment.
  */
-function getSequentialSort() {
+function findSequentialSort() {
 	const blocks = select( 'core/block-editor' )?.getBlocks() ?? [];
 
 	function findInBlocks( blockList ) {
@@ -36,7 +39,7 @@ function getSequentialSort() {
 		return null;
 	}
 
-	return findInBlocks( blocks ) ?? { orderby: 'date', order: 'asc' };
+	return findInBlocks( blocks );
 }
 
 apiFetch.use( ( options, next ) => {
@@ -47,20 +50,27 @@ apiFetch.use( ( options, next ) => {
 		return next( options );
 	}
 
-	const editor = select( 'core/editor' );
-	const currentPostId = editor?.getCurrentPostId();
-	if ( ! currentPostId ) {
+	const sort = findSequentialSort();
+	if ( ! sort ) {
 		return next( options );
 	}
 
-	if ( url.includes( 'sequential_context_post' ) ) {
+	if ( url.includes( 'sequential_block=' ) ) {
 		return next( options );
 	}
 
-	const { orderby, order } = getSequentialSort();
+	const currentPostId = select( 'core/editor' )?.getCurrentPostId();
+	const params = [
+		'sequential_block=1',
+		`sequential_orderby=${ sort.orderby }`,
+		`sequential_order=${ sort.order }`,
+	];
+	if ( currentPostId ) {
+		params.push( `sequential_context_post=${ currentPostId }` );
+	}
+
 	const separator = url.includes( '?' ) ? '&' : '?';
-	const params = `sequential_context_post=${ currentPostId }&sequential_order=${ order }&sequential_orderby=${ orderby }`;
-	const augmented = `${ url }${ separator }${ params }`;
+	const augmented = `${ url }${ separator }${ params.join( '&' ) }`;
 
 	return next( {
 		...options,

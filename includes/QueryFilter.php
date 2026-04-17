@@ -17,6 +17,10 @@ use WP_REST_Request;
  * Architecture: pre_render_block sets a static flag for the parent
  * core/query block. query_loop_block_query_vars reads and consumes it.
  * See previous commit messages for the full rationale.
+ *
+ * Non-singular fallback (v1.1.0): when no current post can be detected
+ * (archive / home / search), the block renders the first N items of the
+ * canonical list in the chosen sort order instead of returning empty.
  */
 final class QueryFilter
 {
@@ -51,10 +55,6 @@ final class QueryFilter
             return $pre_render;
         }
 
-        if ((new ContextDetector())->current_post_id() === null) {
-            return '';
-        }
-
         self::$is_sequential = true;
         self::$orderby = (string) ($parsed_block['attrs']['query']['orderBy'] ?? 'date');
         self::$order = (string) ($parsed_block['attrs']['query']['order'] ?? 'asc');
@@ -76,11 +76,6 @@ final class QueryFilter
 
         self::$is_sequential = false;
 
-        $current_id = (new ContextDetector())->current_post_id();
-        if ($current_id === null) {
-            return array_merge($query, ['post__in' => [0], 'posts_per_page' => 1]);
-        }
-
         $post_type = (string) ($block->context['query']['postType'] ?? 'post');
         $raw_count = (int) ($block->context['query']['perPage'] ?? 3);
         $count = max(self::MIN_COUNT, min(self::MAX_COUNT, $raw_count));
@@ -88,7 +83,11 @@ final class QueryFilter
         // Build canonical list with the user's chosen sort order.
         // Resolver always goes forward — the list order defines "next".
         $all_ids = CanonicalList::get($post_type, self::$orderby, self::$order);
-        $resolved = (new SequentialResolver())->resolve($all_ids, $current_id, 'asc', $count);
+
+        $current_id = (new ContextDetector())->current_post_id();
+        $resolved = $current_id === null
+            ? array_slice($all_ids, 0, $count)
+            : (new SequentialResolver())->resolve($all_ids, $current_id, 'asc', $count);
 
         if (empty($resolved)) {
             return array_merge($query, ['post__in' => [0], 'posts_per_page' => 1]);
@@ -110,8 +109,11 @@ final class QueryFilter
      */
     public function filter_rest_query(string $post_type, array $args, WP_REST_Request $request): array
     {
+        $is_sequential_block = (bool) $request->get_param('sequential_block');
         $context_post = (int) $request->get_param('sequential_context_post');
-        if (!$context_post) {
+
+        // Marker absent AND no context post → not our request.
+        if (!$is_sequential_block && !$context_post) {
             return $args;
         }
 
@@ -121,7 +123,9 @@ final class QueryFilter
         $count = max(self::MIN_COUNT, min(self::MAX_COUNT, $raw_count));
 
         $all_ids = CanonicalList::get($post_type, $orderby, $order);
-        $resolved = (new SequentialResolver())->resolve($all_ids, $context_post, 'asc', $count);
+        $resolved = $context_post
+            ? (new SequentialResolver())->resolve($all_ids, $context_post, 'asc', $count)
+            : array_slice($all_ids, 0, $count);
 
         return array_merge($args, [
             'post__in' => $resolved ?: [0],
