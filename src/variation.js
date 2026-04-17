@@ -9,7 +9,7 @@
 import { registerBlockVariation } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 
-const NAMESPACE = 'sequential-posts-block/query';
+const NAMESPACE = 'next-posts-block/query';
 
 registerBlockVariation( 'core/query', {
 	name: 'next-posts',

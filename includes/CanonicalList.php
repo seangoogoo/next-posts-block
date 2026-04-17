@@ -12,7 +12,7 @@ namespace NextPostsBlock;
  */
 final class CanonicalList
 {
-    private const CACHE_GROUP = 'sequential-posts-block';
+    private const CACHE_GROUP = 'next-posts-block';
     private const CACHE_TTL = HOUR_IN_SECONDS;
 
     private const ALLOWED_ORDERBY = ['date', 'title'];

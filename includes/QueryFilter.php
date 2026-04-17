@@ -31,7 +31,7 @@ use WP_REST_Request;
  */
 final class QueryFilter
 {
-    private const NAMESPACE = 'sequential-posts-block/query';
+    private const NAMESPACE = 'next-posts-block/query';
     private const MIN_COUNT = 1;
     private const MAX_COUNT = 10;
 

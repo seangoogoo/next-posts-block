@@ -9,7 +9,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import { select } from '@wordpress/data';
 
-const NAMESPACE = 'sequential-posts-block/query';
+const NAMESPACE = 'next-posts-block/query';
 const POST_TYPE_REST_PATTERN = /\/wp\/v2\/([a-z0-9_-]+)(\?|$)/i;
 
 /**
