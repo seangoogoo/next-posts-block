@@ -7,10 +7,11 @@
         "php": ">=7.4"
     },
     "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "phpunit/phpunit": "^9.5",
-        "yoast/phpunit-polyfills": "^1.1",
         "wp-coding-standards/wpcs": "^3.0",
-        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+        "wp-phpunit/wp-phpunit": "^6.9",
+        "yoast/phpunit-polyfills": "^1.1"
     },
     "autoload": {
         "psr-4": {
@@ -31,6 +32,7 @@
     "scripts": {
         "test": "phpunit --configuration phpunit.xml.dist",
         "test:unit": "phpunit --configuration phpunit.xml.dist --testsuite unit",
+        "test:integration": "phpunit --configuration phpunit.xml.dist --testsuite integration --bootstrap tests/integration/bootstrap.php",
         "lint": "phpcs --standard=phpcs.xml.dist",
         "lint:fix": "phpcbf --standard=phpcs.xml.dist"
     }
