@@ -82,9 +82,14 @@ composer install          # PHP dev dependencies (PHPUnit, WPCS)
 npm install               # JS build dependencies (@wordpress/scripts)
 npm run start             # watch mode (rebuilds on save)
 npm run build             # one-shot production build
-composer test:unit        # run SequentialResolver unit tests (15 tests)
+composer test:unit        # run pure-PHP unit tests (15 tests)
+composer test:integration # run wp-phpunit integration tests (28 tests)
 composer lint             # run WPCS with the repo's phpcs.xml.dist ruleset
 ```
+
+The integration suite requires a one-time bootstrap of the WordPress test
+suite (local MySQL DB + `wp-phpunit`) — see
+[`docs/testing.md`](./docs/testing.md) for the setup and conventions.
 
 ### Regenerating translations
 
@@ -126,8 +131,11 @@ src/
   rest-middleware.js      # apiFetch middleware for editor preview
 tests/
   unit/                   # pure-PHP unit tests (no WP required)
-  integration/            # (pending — wp-phpunit harness)
+  integration/            # wp-phpunit tests against a real WP test DB
   manual-checklist.md     # frontend + editor manual QA
+docs/
+  testing.md              # test suite bootstrap + conventions
+  wordpress-org/          # wp.org submission audit + naming notes
 languages/                # POT + PO/MO + JSON for JS strings
 build/                    # compiled by wp-scripts; committed for runtime use
 ```
@@ -137,7 +145,7 @@ build/                    # compiled by wp-scripts; committed for runtime use
 Issues and pull requests are welcome. Before opening a PR:
 
 - Keep runtime dependencies at zero (WordPress core only)
-- Run `composer test:unit` and `composer lint`
+- Run `composer test:unit`, `composer test:integration`, and `composer lint`
 - If you touch `src/`, commit the rebuilt `build/` files
 
 ## License
