@@ -22,7 +22,7 @@ if (!file_exists($_tests_dir . '/includes/functions.php')) {
 require_once $_tests_dir . '/includes/functions.php';
 
 tests_add_filter('muplugins_loaded', static function (): void {
-	require dirname(__DIR__, 2) . '/sequential-posts-block.php';
+	require dirname(__DIR__, 2) . '/next-posts-block.php';
 });
 
 require $_tests_dir . '/includes/bootstrap.php';
