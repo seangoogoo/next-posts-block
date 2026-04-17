@@ -4,7 +4,7 @@ Tags: query-loop, block, next-post, related-posts, post-navigation
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,10 @@ When enabled, sticky posts are removed from the sequence. Sticky posts never inf
 
 == Changelog ==
 
+= 1.2.2 =
+* Fix: the block could render more posts than its "Number of posts" setting when sticky posts existed on the site. Sticky-posts neutralization has been restored (it regressed in 1.2.1).
+* Technical: the pre_render reset was moved below the blockName check, so inner blocks (core/post-template, etc.) no longer wipe the armed state before query_loop_block_query_vars consumes it. Sibling-leak prevention for unrelated core/query blocks is preserved.
+
 = 1.2.1 =
 * Security: REST middleware now URI-encodes the `sequential_orderby` / `sequential_order` values before injecting them into request URLs.
 * Fix: the MutationObserver that hides the native Sticky SelectControl no longer matches against the full ToolsPanelItem text, only its label — avoiding accidental hiding of our own "Exclude sticky posts from the sequence" toggle if WordPress ever wraps it in a ToolsPanelItem. The broad `/sticky/i` safety pattern has been removed.
@@ -94,6 +98,9 @@ When enabled, sticky posts are removed from the sequence. Sticky posts never inf
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.2.2 =
+Fix: sticky-posts neutralization (regressed in 1.2.1) is restored. Recommended update if you saw extra posts prepended to the block's output.
 
 = 1.2.1 =
 Security fix: REST preview parameters are now URI-encoded before being injected into request URLs.

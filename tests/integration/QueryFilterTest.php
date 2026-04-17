@@ -241,6 +241,83 @@ final class QueryFilterTest extends WP_UnitTestCase
 	}
 
 	// ------------------------------------------------------------------
+	// Full render pipeline (regression guard)
+	// ------------------------------------------------------------------
+
+	public function test_full_render_pipeline_preserves_armed_state_across_inner_blocks(): void
+	{
+		// Regression guard: pre_render_block fires for every block, including
+		// children of core/query (e.g. core/post-template). If pre_render
+		// resets its static flags before the blockName/namespace guards, the
+		// armed state set by the parent core/query is wiped by the inner
+		// core/post-template's own pre_render_block fire — and
+		// query_loop_block_query_vars then sees is_sequential = false, so
+		// sticky neutralization and sequential resolution never apply.
+		//
+		// Exercising the full do_blocks() pipeline (rather than invoking
+		// filter_query_vars manually) is what surfaces the bug.
+		//
+		// Register the filter against the real WP hooks for this test —
+		// setUp() only instantiates the filter; Plugin::boot() wires it in
+		// production. We un-hook in a finally block to keep test isolation.
+		add_filter('pre_render_block', [$this->filter, 'pre_render'], 10, 2);
+		add_filter('query_loop_block_query_vars', [$this->filter, 'filter_query_vars'], 10, 3);
+
+		try {
+			$markup = '<!-- wp:query {"namespace":"next-posts-block/query","query":{"postType":"post","perPage":3,"inherit":false,"orderBy":"date","order":"asc","excludeSticky":false}} -->'
+				. '<!-- wp:post-template -->'
+				. '<!-- wp:post-title /-->'
+				. '<!-- /wp:post-template -->'
+				. '<!-- /wp:query -->';
+
+			$rendered = $this->render_block_content($markup);
+
+			// Extract per-iteration post IDs from `<li>` wrappers emitted by
+			// `core/post-template`. Using a stricter pattern than
+			// `/post-(\d+)/` avoids false matches from nested wrappers that
+			// may share the `post-{id}` class.
+			preg_match_all('/<li[^>]*\bpost-(\d+)\b[^>]*>/', $rendered, $matches);
+			$rendered_ids = array_map('intval', $matches[1]);
+
+			// Pre-fix behavior: inner core/post-template's pre_render_block
+			// fire resets is_sequential between the parent's arm and the
+			// filter's consumption. filter_query_vars returns the unmodified
+			// $query, so WP_Query runs with its defaults — which includes
+			// prepending sticky posts ($this->post_ids[1] and [4]) and
+			// returning MORE than perPage=3 rows.
+			//
+			// Post-fix behavior: is_sequential survives across inner blocks,
+			// SequentialResolver returns the 3 posts following post_ids[0]
+			// in date-ASC order, and post__in + ignore_sticky_posts=1 pin
+			// the output to exactly those 3 IDs.
+			$this->assertCount(
+				3,
+				$rendered_ids,
+				'Rendered output should contain exactly 3 posts. More than 3 means '
+				. 'sticky posts were prepended because filter_query_vars never fired '
+				. 'with is_sequential=true.'
+			);
+			$this->assertSame(
+				[$this->post_ids[1], $this->post_ids[2], $this->post_ids[3]],
+				$rendered_ids,
+				'Rendered IDs must be the sequentially-resolved next 3 posts after '
+				. 'post_ids[0] in date-ASC order.'
+			);
+
+			// Static state should not leak past the render. filter_query_vars
+			// consumes the flag; if it never fired (pre-fix), pre_render's
+			// own top-of-function reset still leaves it false.
+			$this->assertFalse(
+				$this->get_static('is_sequential'),
+				'is_sequential must not leak past the render.'
+			);
+		} finally {
+			remove_filter('pre_render_block', [$this->filter, 'pre_render'], 10);
+			remove_filter('query_loop_block_query_vars', [$this->filter, 'filter_query_vars'], 10);
+		}
+	}
+
+	// ------------------------------------------------------------------
 	// filter_rest_query
 	// ------------------------------------------------------------------
 
@@ -352,6 +429,31 @@ final class QueryFilterTest extends WP_UnitTestCase
 			$context['query'] = $query_context;
 		}
 		return new WP_Block($parsed, $context);
+	}
+
+	/**
+	 * Sets up a singular context on $this->post_ids[0] and runs the given
+	 * serialized block markup through the full WP render pipeline
+	 * (do_blocks → render_block → pre_render_block → query_loop_block_query_vars).
+	 *
+	 * The singular flags are forced explicitly because go_to() alone does
+	 * not reliably set is_singular() in unit-test bootstrap contexts.
+	 */
+	private function render_block_content(string $markup): string
+	{
+		global $wp_query, $post;
+
+		$post = get_post($this->post_ids[0]);
+		setup_postdata($post);
+
+		$wp_query->queried_object = $post;
+		$wp_query->queried_object_id = $this->post_ids[0];
+		$wp_query->is_single = true;
+		$wp_query->is_singular = true;
+		$wp_query->is_home = false;
+		$wp_query->is_archive = false;
+
+		return do_blocks($markup);
 	}
 
 	private function reset_static_state(): void

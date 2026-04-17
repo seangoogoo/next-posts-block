@@ -58,15 +58,18 @@ final class QueryFilter
      */
     public function pre_render($pre_render, array $parsed_block)
     {
-        // Reset statics unconditionally so a previous armed state (e.g. from
-        // a parent core/query whose filter_query_vars was short-circuited by
-        // another filter) cannot leak into an unrelated sibling core/query.
-        self::$is_sequential = false;
-        self::$exclude_sticky = false;
-
         if (($parsed_block['blockName'] ?? '') !== 'core/query') {
             return $pre_render;
         }
+
+        // Reset after the blockName check: we still want a non-matching core/query
+        // (unrelated sibling) to clear any state leaked from a previous armed-but-
+        // not-consumed core/query, but inner blocks (core/post-template, etc.) must
+        // not wipe the state we just armed, as they fire pre_render_block between
+        // our core/query's pre_render and query_loop_block_query_vars consumption.
+        self::$is_sequential = false;
+        self::$exclude_sticky = false;
+
         if (($parsed_block['attrs']['namespace'] ?? '') !== self::NAMESPACE) {
             return $pre_render;
         }
