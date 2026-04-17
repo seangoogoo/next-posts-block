@@ -1,11 +1,11 @@
-# French translation for Sequential Posts Block.
+# French translation for Next Posts — Query Loop Block.
 # Copyright (C) 2026 Jensen SIU
-# This file is distributed under the same license as the Sequential Posts Block package.
+# This file is distributed under the same license as the Next Posts — Query Loop Block package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Sequential Posts Block 1.2.1\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-17 14:30+0200\n"
+"Project-Id-Version: Next Posts — Query Loop Block 1.2.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/next-posts-block\n"
+"POT-Creation-Date: 2026-04-17T17:46:52+02:00\n"
 "PO-Revision-Date: 2026-04-17 14:30+0200\n"
 "Last-Translator: Jensen SIU\n"
 "Language-Team: French\n"
@@ -14,20 +14,33 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Domain: next-posts-block\n"
 
-#. Plugin Name
-msgid "Sequential Posts Block"
-msgstr "Bloc Publications Séquentielles"
+#. Plugin Name of the plugin
+#: next-posts-block.php
+msgid "Next Posts — Query Loop Block"
+msgstr "Articles suivants — Bloc Query Loop"
 
-#. Plugin Description
-msgid "Query Loop variation that displays posts sequentially relative to the current post, with wrap-around. Supports ordering by date or title."
-msgstr "Variation du Query Loop qui affiche les publications séquentiellement par rapport à la publication actuelle, avec rebouclage. Tri par date ou par titre."
+#. Description of the plugin
+#: next-posts-block.php
+msgid ""
+"Query Loop variation that displays posts sequentially relative to the "
+"current post, with wrap-around. Supports ordering by date or title."
+msgstr ""
+"Variation du Query Loop qui affiche les publications séquentiellement par "
+"rapport à la publication actuelle, avec rebouclage. Tri par date ou par "
+"titre."
 
-#: src/variation.js
-msgid "Sequential Posts"
-msgstr "Publications séquentielles"
+#. Author of the plugin
+#: next-posts-block.php
+msgid "Jensen SIU"
+msgstr ""
 
-#: src/variation.js
+#: build/index.js:1 src/variation.js:16
+msgid "Next Posts"
+msgstr "Articles suivants"
+
+#: build/index.js:1 src/variation.js:17
 msgid ""
 "Displays the N posts that sequentially follow (or precede) the current post, "
 "with wrap-around."
@@ -35,30 +48,33 @@ msgstr ""
 "Affiche les N publications qui suivent (ou précèdent) séquentiellement la "
 "publication actuelle, avec rebouclage."
 
-#: src/variation.js
+#: build/index.js:1 src/variation.js:24
 msgid "next"
 msgstr "suivant"
 
-#: src/variation.js
+#: build/index.js:1 src/variation.js:25
 msgid "previous"
 msgstr "précédent"
 
-#: src/variation.js
+#: build/index.js:1 src/variation.js:26
 msgid "sequence"
 msgstr "séquence"
 
-#: src/variation.js
+#: build/index.js:1 src/variation.js:27
 msgid "related"
 msgstr "associé"
 
-#: src/inspector-controls.js
+#: build/index.js:1 src/inspector-controls.js:48
 msgid "Sequential settings"
 msgstr "Réglages séquentiels"
 
-#: src/inspector-controls.js
+#: build/index.js:1 src/inspector-controls.js:56
 msgid "Exclude sticky posts from the sequence"
 msgstr "Exclure les publications épinglées de la séquence"
 
-#: src/inspector-controls.js
-msgid "Sticky posts are removed from the canonical list used to build the sequence."
-msgstr "Les publications épinglées sont retirées de la liste canonique utilisée pour construire la séquence."
+#: build/index.js:1 src/inspector-controls.js:60
+msgid ""
+"Sticky posts are removed from the canonical list used to build the sequence."
+msgstr ""
+"Les publications épinglées sont retirées de la liste canonique utilisée pour "
+"construire la séquence."
