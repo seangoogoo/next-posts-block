@@ -13,8 +13,9 @@ Run through this on `wp.local` after `composer install && npm install && npm run
 - [ ] Block inserter search "Sequential Posts" → variation appears with list icon
 - [ ] Inserting the block creates a Query Loop with default innerBlocks (featured image, title, excerpt, read-more)
 - [ ] Save draft, reload editor → block re-hydrates as "Sequential Posts", not plain "Query Loop"
-- [ ] Right sidebar shows "Sequential settings" PanelBody with ASC/DESC ToggleGroup
-- [ ] Toggle between ASC and DESC updates the `sequentialOrder` attribute in the saved block HTML comment
+- [ ] Sidebar shows the native "Type de publication" / "Ordonner par" / "Éléments par page" / "Filtres" controls; native "Type de requête" toggle and "Publications épinglées" SelectControl are hidden (v1.1.1 + v1.2.0)
+- [ ] Sidebar shows our custom "Sequential settings" PanelBody with the "Exclude sticky posts from the sequence" ToggleControl (v1.2.0), defaulting to off
+- [ ] Native orderBy/order combobox changes propagate to REST preview immediately
 
 ## Frontend — singular context
 
@@ -38,8 +39,10 @@ Run through this on `wp.local` after `composer install && npm install && npm run
 - [ ] Pin 2 posts sticky. With excludeSticky=off and perPage=3: exactly 3 cards render (stickies not prepended; `ignore_sticky_posts` respected)
 - [ ] With excludeSticky=on and perPage=3: exactly 3 cards render and none of them are sticky posts
 - [ ] On a single post view with excludeSticky=on: sequence skips any sticky posts in both forward and wrap-around traversal
-- [ ] Toggling excludeSticky in the editor: REST preview refreshes and reflects the new set of posts
+- [ ] Toggling excludeSticky on a post template in the editor (context post available): REST preview refreshes and reflects the new set of posts within a few hundred ms
 - [ ] Unpinning all stickies with excludeSticky=on: behavior is identical to off (canonical list unchanged)
+- [ ] Insert a **second** non-sequential `core/query` block on the same page: its native "Publications épinglées" SelectControl remains visible when selected (sticky hide is scoped to our variation only)
+- [ ] Open a post saved with the pre-v1.2.0 block (no `query.excludeSticky` attr): block still renders correctly on the frontend and, in the editor, toggling the new control then saving persists `excludeSticky` cleanly in the HTML comment
 
 ## Deactivation gracefulness
 

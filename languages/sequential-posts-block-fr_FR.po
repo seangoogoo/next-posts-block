@@ -3,10 +3,10 @@
 # This file is distributed under the same license as the Sequential Posts Block package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Sequential Posts Block 1.0.0\n"
+"Project-Id-Version: Sequential Posts Block 1.2.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-17 12:00+0200\n"
-"PO-Revision-Date: 2026-04-17 12:00+0200\n"
+"POT-Creation-Date: 2026-04-17 14:30+0200\n"
+"PO-Revision-Date: 2026-04-17 14:30+0200\n"
 "Last-Translator: Jensen SIU\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -50,3 +50,15 @@ msgstr "séquence"
 #: src/variation.js
 msgid "related"
 msgstr "associé"
+
+#: src/inspector-controls.js
+msgid "Sequential settings"
+msgstr "Réglages séquentiels"
+
+#: src/inspector-controls.js
+msgid "Exclude sticky posts from the sequence"
+msgstr "Exclure les publications épinglées de la séquence"
+
+#: src/inspector-controls.js
+msgid "Sticky posts are removed from the canonical list used to build the sequence."
+msgstr "Les publications épinglées sont retirées de la liste canonique utilisée pour construire la séquence."

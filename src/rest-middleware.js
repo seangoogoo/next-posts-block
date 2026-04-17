@@ -66,8 +66,8 @@ apiFetch.use( ( options, next ) => {
 	const currentPostId = select( 'core/editor' )?.getCurrentPostId();
 	const params = [
 		'sequential_block=1',
-		`sequential_orderby=${ settings.orderby }`,
-		`sequential_order=${ settings.order }`,
+		`sequential_orderby=${ encodeURIComponent( settings.orderby ) }`,
+		`sequential_order=${ encodeURIComponent( settings.order ) }`,
 	];
 	if ( settings.excludeSticky ) {
 		params.push( 'sequential_exclude_sticky=1' );

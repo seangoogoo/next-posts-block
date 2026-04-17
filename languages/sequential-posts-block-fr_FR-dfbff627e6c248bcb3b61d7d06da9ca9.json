@@ -1,5 +1,5 @@
 {
-    "translation-revision-date": "2026-04-17 12:00+0200",
+    "translation-revision-date": "2026-04-17 14:30+0200",
     "generator": "WP-CLI\/2.13.0-alpha-275d793",
     "source": "build\/index.js",
     "domain": "messages",
@@ -27,6 +27,15 @@
             ],
             "related": [
                 "associ\u00e9"
+            ],
+            "Sequential settings": [
+                "R\u00e9glages s\u00e9quentiels"
+            ],
+            "Exclude sticky posts from the sequence": [
+                "Exclure les publications \u00e9pingl\u00e9es de la s\u00e9quence"
+            ],
+            "Sticky posts are removed from the canonical list used to build the sequence.": [
+                "Les publications \u00e9pingl\u00e9es sont retir\u00e9es de la liste canonique utilis\u00e9e pour construire la s\u00e9quence."
             ]
         }
     }

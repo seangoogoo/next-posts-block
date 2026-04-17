@@ -4,7 +4,7 @@ Tags: block, gutenberg, query-loop, next-post, related-posts
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,14 @@ No rebuild needed. Changes are picked up on the next page load.
 * Regenerate the JS JSON file (required for block name/description in the editor): `wp i18n make-json languages/sequential-posts-block-{locale}.po --no-purge --use-map='{"src/variation.js":"build/index.js"}'` — the `--use-map` ensures the MD5 filename matches the enqueued build script, not the source.
 
 == Changelog ==
+
+= 1.2.1 =
+* Security: REST middleware now URI-encodes the `sequential_orderby` / `sequential_order` values before injecting them into request URLs.
+* Fix: the MutationObserver that hides the native Sticky SelectControl no longer matches against the full ToolsPanelItem text, only its label — avoiding accidental hiding of our own "Exclude sticky posts from the sequence" toggle if WordPress ever wraps it in a ToolsPanelItem. The broad `/sticky/i` safety pattern has been removed.
+* Performance: the observer is now scoped to the sidebar skeleton and filters out pure text-node mutations.
+* Fix: `QueryFilter::pre_render` resets the `$is_sequential` and `$exclude_sticky` statics unconditionally before the match checks, preventing state leakage if a previous arm was never consumed by `filter_query_vars` (e.g. another filter short-circuited the render).
+* i18n: French translations added for "Sequential settings", "Exclude sticky posts from the sequence", and the help text. JSON regenerated with both source mappings (`src/variation.js` + `src/inspector-controls.js` → `build/index.js`).
+* Manual checklist refreshed: removed stale references to a draft v1.0 UI that was never shipped, added scenarios for REST preview tracking, sidebar-scope isolation across multiple query blocks, and pre-v1.2.0 block migration.
 
 = 1.2.0 =
 * New: dedicated "Sequential settings" panel with an "Exclude sticky posts from the sequence" toggle (writes to `query.excludeSticky`). When enabled, sticky posts are removed from the canonical list that drives the sequential navigation.

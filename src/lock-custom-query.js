@@ -49,19 +49,25 @@ function removeQueryTypeStyle() {
 /* (2) Sticky posts SelectControl hide                                */
 /* ------------------------------------------------------------------ */
 
-// Label patterns matched across WP locales. Extend when adding new locales.
+// Label patterns matched against the ToolsPanelItem's own <label>/legend text
+// across WP locales. Extend this list when adding new locales. Do NOT fall
+// back to `item.textContent`: our own "Sequential settings" ToggleControl
+// also contains the word "sticky" in its label and help text, and a future
+// WP reshuffle that wraps it in a ToolsPanelItem would accidentally hide it
+// with an over-broad match.
 const STICKY_LABEL_PATTERNS = [
 	/sticky\s+posts?/i,               // en_US / en_GB
 	/publications?\s+épinglées?/i,    // fr_FR
 	/publicaciones?\s+fijadas?/i,     // es_ES
-	/sticky/i,                        // safety net
 ];
 const STICKY_HIDDEN_ATTR = 'data-sequential-hidden';
 
 function isStickyItem( item ) {
-	// Match against the visible label text of the ToolsPanelItem.
-	const label = item.querySelector( 'label, legend, .components-base-control__label' );
-	const text = ( label?.textContent || item.textContent || '' ).trim();
+	const label = item.querySelector(
+		'label, legend, .components-base-control__label'
+	);
+	if ( ! label ) return false;
+	const text = label.textContent.trim();
 	return STICKY_LABEL_PATTERNS.some( ( re ) => re.test( text ) );
 }
 
@@ -88,8 +94,21 @@ function restoreStickyItems() {
 
 function watchSidebarForSticky() {
 	hideStickyItems();
-	const observer = new MutationObserver( () => hideStickyItems() );
-	observer.observe( document.body, { childList: true, subtree: true } );
+	// Scope the observer to the sidebar container to avoid reacting to every
+	// keystroke / autosave flicker in the editor canvas. Fall back to body
+	// only if the expected skeleton is absent (shouldn't happen in 6.x).
+	const target =
+		document.querySelector( '.interface-interface-skeleton__sidebar' ) ||
+		document.body;
+	const observer = new MutationObserver( ( mutations ) => {
+		// Skip pure character-data / attribute churn; only act when nodes
+		// are added or removed.
+		const hasStructural = mutations.some(
+			( m ) => m.addedNodes.length > 0 || m.removedNodes.length > 0
+		);
+		if ( hasStructural ) hideStickyItems();
+	} );
+	observer.observe( target, { childList: true, subtree: true } );
 	return () => {
 		observer.disconnect();
 		restoreStickyItems();

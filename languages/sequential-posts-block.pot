@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Sequential Posts Block 1.0.0\n"
+"Project-Id-Version: Sequential Posts Block 1.2.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-16 12:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -41,4 +41,16 @@ msgstr ""
 
 #: src/variation.js:27
 msgid "related"
+msgstr ""
+
+#: src/inspector-controls.js
+msgid "Sequential settings"
+msgstr ""
+
+#: src/inspector-controls.js
+msgid "Exclude sticky posts from the sequence"
+msgstr ""
+
+#: src/inspector-controls.js
+msgid "Sticky posts are removed from the canonical list used to build the sequence."
 msgstr ""
