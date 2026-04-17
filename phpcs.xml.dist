@@ -3,7 +3,7 @@
     <description>Coding standard for Next Posts Block plugin.</description>
 
     <file>includes</file>
-    <file>sequential-posts-block.php</file>
+    <file>next-posts-block.php</file>
 
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
