@@ -47,7 +47,7 @@ const withSequentialSettings = createHigherOrderComponent(
 					<PanelBody
 						title={ __(
 							'Sequential settings',
-							'sequential-posts-block'
+							'next-posts-block'
 						) }
 						initialOpen={ true }
 					>
@@ -55,11 +55,11 @@ const withSequentialSettings = createHigherOrderComponent(
 							__nextHasNoMarginBottom
 							label={ __(
 								'Exclude sticky posts from the sequence',
-								'sequential-posts-block'
+								'next-posts-block'
 							) }
 							help={ __(
 								'Sticky posts are removed from the canonical list used to build the sequence.',
-								'sequential-posts-block'
+								'next-posts-block'
 							) }
 							checked={ excludeSticky }
 							onChange={ setExcludeSticky }

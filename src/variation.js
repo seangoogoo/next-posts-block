@@ -12,19 +12,19 @@ import { __ } from '@wordpress/i18n';
 const NAMESPACE = 'sequential-posts-block/query';
 
 registerBlockVariation( 'core/query', {
-	name: 'sequential-posts',
-	title: __( 'Sequential Posts', 'sequential-posts-block' ),
+	name: 'next-posts',
+	title: __( 'Next Posts', 'next-posts-block' ),
 	description: __(
 		'Displays the N posts that sequentially follow (or precede) the current post, with wrap-around.',
-		'sequential-posts-block'
+		'next-posts-block'
 	),
 	icon: 'list-view',
 	category: 'theme',
 	keywords: [
-		__( 'next', 'sequential-posts-block' ),
-		__( 'previous', 'sequential-posts-block' ),
-		__( 'sequence', 'sequential-posts-block' ),
-		__( 'related', 'sequential-posts-block' ),
+		__( 'next', 'next-posts-block' ),
+		__( 'previous', 'next-posts-block' ),
+		__( 'sequence', 'next-posts-block' ),
+		__( 'related', 'next-posts-block' ),
 	],
 	scope: [ 'inserter' ],
 	attributes: {
