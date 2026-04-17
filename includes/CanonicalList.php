@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock;
+namespace NextPostsBlock;
 
 /**
  * Retrieves and caches the canonical ordered list of published post IDs
@@ -12,7 +12,7 @@ namespace SequentialPostsBlock;
  */
 final class CanonicalList
 {
-    private const CACHE_GROUP = 'sequential-posts-block';
+    private const CACHE_GROUP = 'next-posts-block';
     private const CACHE_TTL = HOUR_IN_SECONDS;
 
     private const ALLOWED_ORDERBY = ['date', 'title'];

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock\Tests\Integration;
+namespace NextPostsBlock\Tests\Integration;
 
 use ReflectionProperty;
-use SequentialPostsBlock\QueryFilter;
+use NextPostsBlock\QueryFilter;
 use WP_Block;
 use WP_REST_Request;
 use WP_UnitTestCase;
@@ -201,7 +201,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 
 		$this->filter->pre_render(null, $this->make_parsed_block([
 			'attrs' => [
-				'namespace' => 'sequential-posts-block/query',
+				'namespace' => 'next-posts-block/query',
 				'query' => [
 					'postType' => 'spb_nonexistent',
 					'perPage' => 3,
@@ -318,7 +318,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 			[
 				'blockName' => 'core/query',
 				'attrs' => [
-					'namespace' => 'sequential-posts-block/query',
+					'namespace' => 'next-posts-block/query',
 					'query' => [
 						'postType' => 'post',
 						'perPage' => 3,

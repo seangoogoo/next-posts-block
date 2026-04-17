@@ -1,5 +1,5 @@
 /**
- * Sequential Posts Block — editor bundle entry point.
+ * Next Posts — Query Loop Block — editor bundle entry point.
  *
  * This file is the single entry point compiled by @wordpress/scripts.
  * It imports the block variation and (later) inspector controls.

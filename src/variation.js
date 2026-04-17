@@ -1,5 +1,5 @@
 /**
- * Sequential Posts — registers a variation of core/query.
+ * Next Posts — registers a variation of core/query.
  *
  * Uses native Query Loop orderBy/order controls for sort direction.
  * No custom attributes needed — the server reads query.orderBy and
@@ -9,22 +9,22 @@
 import { registerBlockVariation } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 
-const NAMESPACE = 'sequential-posts-block/query';
+const NAMESPACE = 'next-posts-block/query';
 
 registerBlockVariation( 'core/query', {
-	name: 'sequential-posts',
-	title: __( 'Sequential Posts', 'sequential-posts-block' ),
+	name: 'next-posts',
+	title: __( 'Next Posts', 'next-posts-block' ),
 	description: __(
 		'Displays the N posts that sequentially follow (or precede) the current post, with wrap-around.',
-		'sequential-posts-block'
+		'next-posts-block'
 	),
 	icon: 'list-view',
 	category: 'theme',
 	keywords: [
-		__( 'next', 'sequential-posts-block' ),
-		__( 'previous', 'sequential-posts-block' ),
-		__( 'sequence', 'sequential-posts-block' ),
-		__( 'related', 'sequential-posts-block' ),
+		__( 'next', 'next-posts-block' ),
+		__( 'previous', 'next-posts-block' ),
+		__( 'sequence', 'next-posts-block' ),
+		__( 'related', 'next-posts-block' ),
 	],
 	scope: [ 'inserter' ],
 	attributes: {

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock\Tests\Unit;
+namespace NextPostsBlock\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use SequentialPostsBlock\SequentialResolver;
+use NextPostsBlock\SequentialResolver;
 
 final class SequentialResolverTest extends TestCase
 {

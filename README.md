@@ -1,10 +1,10 @@
-# Sequential Posts Block
+# Next Posts — Query Loop Block
 
 > Gutenberg Query Loop variation that displays posts sequentially relative to
 > the current post, with silent wrap-around at list boundaries.
 
 A lightweight variation of the native `core/query` block. Appears in the
-inserter as **Sequential Posts** and renders the N posts that come after
+inserter as **Next Posts** and renders the N posts that come after
 (or before) the current post in the chosen sort order. Outside a singular
 context (archives, home, Site Editor templates), it falls back to the first
 N items of the canonical list.
@@ -29,8 +29,8 @@ N items of the canonical list.
 ### From source
 
 ```bash
-git clone https://github.com/seangoogoo/sequential-posts-block.git
-cd sequential-posts-block
+git clone https://github.com/seangoogoo/next-posts-block.git
+cd next-posts-block
 composer install --no-dev
 npm install && npm run build
 ```
@@ -41,13 +41,13 @@ Then symlink or copy the folder into `wp-content/plugins/` and activate via
 ### From a release zip
 
 Release zips are not published yet. Build from source or watch the
-[Releases page](https://github.com/seangoogoo/sequential-posts-block/releases).
+[Releases page](https://github.com/seangoogoo/next-posts-block/releases).
 
 ## Usage
 
 1. Open any single-post template (or edit a post's content) in the block
    editor
-2. **Insert block** → search for **Sequential Posts**
+2. **Insert block** → search for **Next Posts**
 3. Configure post type, number of items, and sort order in the right
    sidebar (Query Loop native controls)
 4. On the frontend:
@@ -60,7 +60,7 @@ Release zips are not published yet. Build from source or watch the
 
 The block is a **variation** of `core/query`, not a new block. A
 `pre_render_block` filter detects the variation via its `namespace`
-attribute (`sequential-posts-block/query`) and arms a static flag; the
+attribute (`next-posts-block/query`) and arms a static flag; the
 `query_loop_block_query_vars` filter then rewrites the query's `post__in`
 to the sequentially-resolved IDs.
 
@@ -98,16 +98,16 @@ After adding or updating strings in `src/variation.js`:
 ```bash
 # Extract strings to POT
 xgettext --language=JavaScript --keyword=__ --from-code=UTF-8 \
-  --default-domain=sequential-posts-block \
-  --output=languages/sequential-posts-block.pot \
+  --default-domain=next-posts-block \
+  --output=languages/next-posts-block.pot \
   src/variation.js src/inspector-controls.js
 
 # Update the locale PO, then compile MO
-msgfmt -o languages/sequential-posts-block-{locale}.mo \
-  languages/sequential-posts-block-{locale}.po
+msgfmt -o languages/next-posts-block-{locale}.mo \
+  languages/next-posts-block-{locale}.po
 
 # Regenerate the JS JSON file (required for block name/description in the editor)
-wp i18n make-json languages/sequential-posts-block-{locale}.po \
+wp i18n make-json languages/next-posts-block-{locale}.po \
   --no-purge \
   --use-map='{"src/variation.js":"build/index.js"}'
 ```

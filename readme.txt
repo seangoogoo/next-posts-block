@@ -1,6 +1,6 @@
-=== Sequential Posts Block ===
+=== Next Posts — Query Loop Block ===
 Contributors: jensensiu
-Tags: block, gutenberg, query-loop, next-post, related-posts
+Tags: query-loop, block, next-post, related-posts, post-navigation
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
@@ -8,67 +8,67 @@ Stable tag: 1.2.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Query Loop variation that displays posts sequentially relative to the current post, with wrap-around.
+A Query Loop variation that displays the next N posts after the current one, with wrap-around — configurable order, any post type.
 
 == Description ==
 
-Variation of the native Query Loop block. Appears in the inserter as "Sequential Posts". On any single-post page, it renders the N posts that come after (or before) the current one in the chosen sort order, with silent wrap-around at list boundaries. When used outside a singular context (archives, home, search), it falls back to the first N items of the canonical list in the chosen sort order.
+Next Posts is a variation of the native Query Loop block. It appears in the Block Editor inserter as "Next Posts". On any single-post page, it renders the N posts that come after the current one in the chosen sort order, with silent wrap-around at list boundaries — so readers always see a full set of suggestions, even when viewing the last post in a sequence. When the block is used outside a singular context (archives, home, search, template previews), it falls back to the first N items of the canonical list in the chosen sort order instead of rendering empty.
+
+Because Next Posts reuses the native Query Loop block, authors configure the card template visually with the standard Post blocks (Post Title, Post Featured Image, Post Excerpt, and so on). The block is well suited for post navigation, related posts rails, and any layout that needs a sequential list of entries tied to the current post.
 
 **Key features:**
 
 * Works with any public post type
-* Visually editable card template (Post Title, Featured Image, Post Excerpt, etc.)
+* Visually editable card template using native Post blocks (Post Title, Post Featured Image, Post Excerpt, etc.)
 * Uses the native Query Loop ordering controls (date / title, ASC / DESC)
 * Configurable number of items (1–10)
 * Silent wrap-around at end/start of the list
-* Editor preview reflects order changes in real-time
+* Non-singular fallback renders the first N items of the canonical list
+* Editor preview reflects order changes in real time
 * Zero third-party runtime dependencies
-
-**Known limitations:**
-
-* No WPML / Polylang language filtering in v1.0
 
 == Installation ==
 
-1. Upload the `sequential-posts-block` folder to `wp-content/plugins/`
-2. Run the install commands (see Development section below)
-3. Activate the plugin through the Plugins menu
-4. Insert "Sequential Posts" block on any single-post template or in post content
+1. Install through the admin: Plugins → Add New → search for "Next Posts — Query Loop Block" → Install → Activate.
+2. Or upload the plugin folder to `/wp-content/plugins/` and activate it through the Plugins menu.
+3. In the Block Editor, insert the "Next Posts" block on a single-post template, or directly in a post. The block variation appears in the inserter under "Next Posts".
+4. Configure the number of posts (1–10), the sort order, and the card template through the block's sidebar settings.
 
-== Development ==
+== Frequently Asked Questions ==
 
-All commands must be run from the plugin directory:
+= How do I insert the block? =
 
-`cd wp-content/plugins/sequential-posts-block`
+In the Block Editor, open the inserter, search for "Next Posts", and add the block to your single-post template or post content.
 
-**First-time setup:**
+= How do I change the number of posts shown? =
 
-* `composer install` — installs PHP dev dependencies (PHPUnit, WPCS)
-* `npm install` — installs JS build dependencies (@wordpress/scripts)
-* `npm run build` — compiles JS from `src/` to `build/`
+Select the block and use the "Items per page" control in the sidebar. Valid range is 1 to 10.
 
-**When modifying PHP files (`includes/`):**
+= What happens when the current post is the last in the list? =
 
-No rebuild needed. Changes are picked up on the next page load.
+The block wraps around silently and continues from the start of the list, so readers always see a full set of suggestions.
 
-**When modifying JS files (`src/`):**
+= What happens on archive, home, or search pages? =
 
-* `npm run build` — one-shot compile (run after each change)
-* `npm run start` — watch mode that recompiles automatically on save (recommended during development)
+When no single-post context is available, the block renders the first N items of the canonical list in the chosen sort order, instead of returning empty.
 
-**When modifying `package.json`:**
+= Does it work with WPML or Polylang? =
 
-* `npm install` — then `npm run build`
+Not natively. The block builds its list in a way that bypasses the language filters used by multilingual plugins, so a multilingual site may show posts from other languages in the sequence. Native multilingual support may be added in a future release.
 
-**Running the unit test suite:**
+= Can I use it with custom post types? =
 
-* `composer test:unit` — runs the SequentialResolver unit tests (15 tests)
+Yes. The block works with any post type registered as `public`.
 
-**Regenerating translations:**
+= Can I exclude sticky posts from the sequence? =
 
-* Extract strings to POT: `xgettext --language=JavaScript --keyword=__ --from-code=UTF-8 --default-domain=sequential-posts-block --output=languages/sequential-posts-block.pot src/variation.js src/inspector-controls.js`
-* Update `.po` files as needed, then compile MO: `msgfmt -o languages/sequential-posts-block-{locale}.mo languages/sequential-posts-block-{locale}.po`
-* Regenerate the JS JSON file (required for block name/description in the editor): `wp i18n make-json languages/sequential-posts-block-{locale}.po --no-purge --use-map='{"src/variation.js":"build/index.js"}'` — the `--use-map` ensures the MD5 filename matches the enqueued build script, not the source.
+When enabled, sticky posts are removed from the sequence. Sticky posts never inflate the item count beyond the number you configured, regardless of this setting.
+
+== Screenshots ==
+
+1. The "Next Posts" block shown in the Gutenberg inserter.
+2. The block rendering the next 3 posts after the current one on a single-post page.
+3. The block sidebar settings panel.
 
 == Changelog ==
 
@@ -92,3 +92,14 @@ No rebuild needed. Changes are picked up on the next page load.
 
 = 1.0.0 =
 * Initial release.
+
+== Upgrade Notice ==
+
+= 1.2.1 =
+Security fix: REST preview parameters are now URI-encoded before being injected into request URLs.
+
+= 1.2.0 =
+New "Sequential settings" panel with a toggle to exclude sticky posts from the sequence. Fixes the native "Include" sticky mode silently inflating the result set beyond perPage.
+
+= 1.1.0 =
+Non-singular fallback: the block now renders the first N items when used on archives, home, or search pages.

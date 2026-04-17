@@ -1,18 +1,18 @@
-# Manual QA Checklist — Sequential Posts Block v1.2
+# Manual QA Checklist — Next Posts — Query Loop Block v1.2
 
 Run through this on `wp.local` after `composer install && npm install && npm run build`.
 
 ## Environment sanity
 
 - [ ] Plugin activates without fatal error (check `wp-content/debug.log`)
-- [ ] No console errors in the editor referencing `sequential-posts-block-editor`
+- [ ] No console errors in the editor referencing `next-posts-block-editor`
 - [ ] `npm run build` produces `build/index.js` + `build/index.asset.php` without warnings
 
 ## Editor
 
-- [ ] Block inserter search "Sequential Posts" → variation appears with list icon
+- [ ] Block inserter search "Next Posts" → variation appears with list icon
 - [ ] Inserting the block creates a Query Loop with default innerBlocks (featured image, title, excerpt, read-more)
-- [ ] Save draft, reload editor → block re-hydrates as "Sequential Posts", not plain "Query Loop"
+- [ ] Save draft, reload editor → block re-hydrates as "Next Posts", not plain "Query Loop"
 - [ ] Sidebar shows the native "Type de publication" / "Ordonner par" / "Éléments par page" / "Filtres" controls; native "Type de requête" toggle and "Publications épinglées" SelectControl are hidden (v1.1.1 + v1.2.0)
 - [ ] Sidebar shows our custom "Sequential settings" PanelBody with the "Exclude sticky posts from the sequence" ToggleControl (v1.2.0), defaulting to off
 - [ ] Native orderBy/order combobox changes propagate to REST preview immediately

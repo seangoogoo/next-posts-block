@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock\Tests\Integration;
+namespace NextPostsBlock\Tests\Integration;
 
-use SequentialPostsBlock\ContextDetector;
+use NextPostsBlock\ContextDetector;
 use WP_UnitTestCase;
 
 /**

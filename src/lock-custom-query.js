@@ -1,5 +1,5 @@
 /**
- * Locks native core/query controls that conflict with Sequential Posts semantics.
+ * Locks native core/query controls that conflict with Next Posts semantics.
  *
  * 1. Query Type toggle (v1.1.0): locked to "Custom" (inherit: false) so the
  *    plugin's server-side filter cannot be bypassed.
@@ -23,13 +23,13 @@ import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { useEffect } from '@wordpress/element';
 
-const NAMESPACE = 'sequential-posts-block/query';
+const NAMESPACE = 'next-posts-block/query';
 
 /* ------------------------------------------------------------------ */
 /* (1) Query Type toggle lock                                         */
 /* ------------------------------------------------------------------ */
 
-const QUERY_TYPE_STYLE_ID = 'sequential-posts-block-hide-query-type';
+const QUERY_TYPE_STYLE_ID = 'next-posts-block-hide-query-type';
 const QUERY_TYPE_HIDE_RULE = `.components-tools-panel-item:has(.components-toggle-group-control){display:none!important}`;
 
 function ensureQueryTypeStyleInjected() {
@@ -152,6 +152,6 @@ const withLockedCustomQuery = createHigherOrderComponent(
 
 addFilter(
 	'editor.BlockEdit',
-	'sequential-posts-block/lock-custom-query',
+	'next-posts-block/lock-custom-query',
 	withLockedCustomQuery
 );

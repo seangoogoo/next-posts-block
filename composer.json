@@ -1,6 +1,6 @@
 {
-    "name": "your-org/sequential-posts-block",
-    "description": "Gutenberg block: N posts sequentially following the current post, with wrap-around.",
+    "name": "seangoogoo/next-posts-block",
+    "description": "Query Loop block variation: N posts following the current post in the chosen order, with wrap-around.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
     "require": {
@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "SequentialPostsBlock\\": "includes/"
+            "NextPostsBlock\\": "includes/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "SequentialPostsBlock\\Tests\\": "tests/"
+            "NextPostsBlock\\Tests\\": "tests/"
         }
     },
     "config": {

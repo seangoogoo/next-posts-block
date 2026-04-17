@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace SequentialPostsBlock;
+namespace NextPostsBlock;
 
 /**
  * Wires the plugin's hooks into WordPress.
@@ -21,9 +21,9 @@ final class Plugin
     public function load_textdomain(): void
     {
         load_plugin_textdomain(
-            'sequential-posts-block',
+            'next-posts-block',
             false,
-            dirname(plugin_basename(SEQUENTIAL_POSTS_BLOCK_PATH)) . '/languages'
+            dirname(plugin_basename(NEXT_POSTS_BLOCK_PATH)) . '/languages'
         );
     }
 
@@ -63,24 +63,24 @@ final class Plugin
 
     public function enqueue_editor_assets(): void
     {
-        $asset_file = SEQUENTIAL_POSTS_BLOCK_PATH . 'build/index.asset.php';
+        $asset_file = NEXT_POSTS_BLOCK_PATH . 'build/index.asset.php';
         if (!file_exists($asset_file)) {
             return;
         }
         $asset = require $asset_file;
 
         wp_enqueue_script(
-            'sequential-posts-block-editor',
-            SEQUENTIAL_POSTS_BLOCK_URL . 'build/index.js',
+            'next-posts-block-editor',
+            NEXT_POSTS_BLOCK_URL . 'build/index.js',
             $asset['dependencies'] ?? [],
-            $asset['version'] ?? SEQUENTIAL_POSTS_BLOCK_VERSION,
+            $asset['version'] ?? NEXT_POSTS_BLOCK_VERSION,
             true
         );
 
         wp_set_script_translations(
-            'sequential-posts-block-editor',
-            'sequential-posts-block',
-            SEQUENTIAL_POSTS_BLOCK_PATH . 'languages'
+            'next-posts-block-editor',
+            'next-posts-block',
+            NEXT_POSTS_BLOCK_PATH . 'languages'
         );
     }
 }
