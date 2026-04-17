@@ -64,10 +64,11 @@ No rebuild needed. Changes are picked up on the next page load.
 
 * `composer test:unit` — runs the SequentialResolver unit tests (15 tests)
 
-**Regenerating the i18n POT:**
+**Regenerating translations:**
 
-* `xgettext --language=JavaScript --keyword=__ --from-code=UTF-8 --default-domain=sequential-posts-block --output=languages/sequential-posts-block.pot src/variation.js src/inspector-controls.js`
-* Update `.po` files as needed, then `msgfmt -o languages/sequential-posts-block-{locale}.mo languages/sequential-posts-block-{locale}.po`
+* Extract strings to POT: `xgettext --language=JavaScript --keyword=__ --from-code=UTF-8 --default-domain=sequential-posts-block --output=languages/sequential-posts-block.pot src/variation.js src/inspector-controls.js`
+* Update `.po` files as needed, then compile MO: `msgfmt -o languages/sequential-posts-block-{locale}.mo languages/sequential-posts-block-{locale}.po`
+* Regenerate the JS JSON file (required for block name/description in the editor): `wp i18n make-json languages/sequential-posts-block-{locale}.po --no-purge --use-map='{"src/variation.js":"build/index.js"}'` — the `--use-map` ensures the MD5 filename matches the enqueued build script, not the source.
 
 == Changelog ==
 

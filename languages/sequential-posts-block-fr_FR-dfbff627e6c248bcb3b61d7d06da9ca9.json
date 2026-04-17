@@ -1,25 +1,32 @@
 {
+    "translation-revision-date": "2026-04-17 12:00+0200",
+    "generator": "WP-CLI\/2.13.0-alpha-275d793",
+    "source": "build\/index.js",
     "domain": "messages",
     "locale_data": {
         "messages": {
-            "0": "",
+            "": {
+                "domain": "messages",
+                "lang": "fr_FR",
+                "plural-forms": "nplurals=2; plural=(n > 1);"
+            },
             "Sequential Posts": [
-                "Publications séquentielles"
+                "Publications s\u00e9quentielles"
+            ],
+            "Displays the N posts that sequentially follow (or precede) the current post, with wrap-around.": [
+                "Affiche les N publications qui suivent (ou pr\u00e9c\u00e8dent) s\u00e9quentiellement la publication actuelle, avec rebouclage."
             ],
             "next": [
                 "suivant"
             ],
             "previous": [
-                "précédent"
+                "pr\u00e9c\u00e9dent"
             ],
             "sequence": [
-                "séquence"
+                "s\u00e9quence"
             ],
             "related": [
-                "associé"
-            ],
-            "Displays the N posts that sequentially follow (or precede) the current post, with wrap-around.": [
-                "Affiche les N publications qui suivent (ou précèdent) séquentiellement la publication actuelle, avec rebouclage."
+                "associ\u00e9"
             ]
         }
     }
