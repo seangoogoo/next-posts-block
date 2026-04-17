@@ -13,7 +13,7 @@ const NAMESPACE = 'next-posts-block/query';
 const POST_TYPE_REST_PATTERN = /\/wp\/v2\/([a-z0-9_-]+)(\?|$)/i;
 
 /**
- * Recursively finds the first Sequential Posts block in the editor and
+ * Recursively finds the first Next Posts block in the editor and
  * returns its orderBy / order / excludeSticky. Returns null if the variation
  * is absent from the block tree — signals that this REST call is NOT ours
  * to augment.

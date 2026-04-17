@@ -1,5 +1,5 @@
 /**
- * Locks native core/query controls that conflict with Sequential Posts semantics.
+ * Locks native core/query controls that conflict with Next Posts semantics.
  *
  * 1. Query Type toggle (v1.1.0): locked to "Custom" (inherit: false) so the
  *    plugin's server-side filter cannot be bypassed.

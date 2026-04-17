@@ -1,5 +1,5 @@
 /**
- * Custom InspectorControls panel for the Sequential Posts variation.
+ * Custom InspectorControls panel for the Next Posts variation.
  *
  * Adds a "Sequential settings" panel with a single ToggleControl:
  *   "Exclude sticky posts from the sequence" → writes to query.excludeSticky.

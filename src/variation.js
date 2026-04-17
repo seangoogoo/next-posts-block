@@ -1,5 +1,5 @@
 /**
- * Sequential Posts — registers a variation of core/query.
+ * Next Posts — registers a variation of core/query.
  *
  * Uses native Query Loop orderBy/order controls for sort direction.
  * No custom attributes needed — the server reads query.orderBy and
