@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Sequential Posts Block
  * Description:       Query Loop variation that displays posts sequentially relative to the current post, with wrap-around. Supports ordering by date or title.
- * Version:           1.1.0
+ * Version:           1.2.0
  * Requires at least: 6.1
  * Requires PHP:      7.4
  * Author:            Jensen SIU
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SEQUENTIAL_POSTS_BLOCK_VERSION', '1.1.0');
+define('SEQUENTIAL_POSTS_BLOCK_VERSION', '1.2.0');
 define('SEQUENTIAL_POSTS_BLOCK_PATH', plugin_dir_path(__FILE__));
 define('SEQUENTIAL_POSTS_BLOCK_URL', plugin_dir_url(__FILE__));
 

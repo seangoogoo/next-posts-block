@@ -1,4 +1,4 @@
-# Manual QA Checklist — Sequential Posts Block v1.1
+# Manual QA Checklist — Sequential Posts Block v1.2
 
 Run through this on `wp.local` after `composer install && npm install && npm run build`.
 
@@ -30,6 +30,16 @@ Run through this on `wp.local` after `composer install && npm install && npm run
 - [ ] Sort order reflected: `orderBy=date order=desc` → most recent first; `orderBy=date order=asc` → oldest first; `orderBy=title order=asc` → A→Z
 - [ ] Canonical list shorter than perPage: returns all available posts, no duplicates, no fatal
 - [ ] Empty canonical list (post type with zero published posts): block renders no cards (empty `post__in`)
+
+## Sticky posts (v1.2.0)
+
+- [ ] Sidebar: native "Publications épinglées" / "Sticky posts" SelectControl is hidden when our variation is selected
+- [ ] Sidebar: "Sequential settings" panel with "Exclude sticky posts from the sequence" toggle is visible and defaults to off
+- [ ] Pin 2 posts sticky. With excludeSticky=off and perPage=3: exactly 3 cards render (stickies not prepended; `ignore_sticky_posts` respected)
+- [ ] With excludeSticky=on and perPage=3: exactly 3 cards render and none of them are sticky posts
+- [ ] On a single post view with excludeSticky=on: sequence skips any sticky posts in both forward and wrap-around traversal
+- [ ] Toggling excludeSticky in the editor: REST preview refreshes and reflects the new set of posts
+- [ ] Unpinning all stickies with excludeSticky=on: behavior is identical to off (canonical list unchanged)
 
 ## Deactivation gracefulness
 

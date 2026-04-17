@@ -1,12 +1,79 @@
 /**
- * Inspector controls placeholder.
+ * Custom InspectorControls panel for the Sequential Posts variation.
  *
- * The Sequential Posts variation uses the native Query Loop ordering
- * controls (orderBy + order) directly. No custom inspector panel needed.
+ * Adds a "Sequential settings" panel with a single ToggleControl:
+ *   "Exclude sticky posts from the sequence" → writes to query.excludeSticky.
  *
- * This file is kept as an empty module so index.js can import it
- * without breaking the build. Future enhancements (e.g. non-single
- * context placeholder) can be added here.
+ * Scoped to our variation via a BlockEdit filter. Other core/query blocks
+ * are left untouched.
+ *
+ * Pairs with the server-side CanonicalList::get($post_type, …, $exclude_sticky)
+ * which rebuilds the list without sticky IDs when the flag is true.
  */
 
-export {};
+import { addFilter } from '@wordpress/hooks';
+import { createHigherOrderComponent } from '@wordpress/compose';
+import { InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, ToggleControl } from '@wordpress/components';
+import { Fragment } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+
+const NAMESPACE = 'sequential-posts-block/query';
+
+const withSequentialSettings = createHigherOrderComponent(
+	( BlockEdit ) => ( props ) => {
+		const isOurVariation =
+			props.name === 'core/query' &&
+			props.attributes?.namespace === NAMESPACE;
+
+		if ( ! isOurVariation ) {
+			return <BlockEdit { ...props } />;
+		}
+
+		const excludeSticky = Boolean(
+			props.attributes?.query?.excludeSticky
+		);
+
+		const setExcludeSticky = ( value ) => {
+			props.setAttributes( {
+				query: { ...props.attributes.query, excludeSticky: value },
+			} );
+		};
+
+		return (
+			<Fragment>
+				<BlockEdit { ...props } />
+				<InspectorControls>
+					<PanelBody
+						title={ __(
+							'Sequential settings',
+							'sequential-posts-block'
+						) }
+						initialOpen={ true }
+					>
+						<ToggleControl
+							__nextHasNoMarginBottom
+							label={ __(
+								'Exclude sticky posts from the sequence',
+								'sequential-posts-block'
+							) }
+							help={ __(
+								'Sticky posts are removed from the canonical list used to build the sequence.',
+								'sequential-posts-block'
+							) }
+							checked={ excludeSticky }
+							onChange={ setExcludeSticky }
+						/>
+					</PanelBody>
+				</InspectorControls>
+			</Fragment>
+		);
+	},
+	'withSequentialSettings'
+);
+
+addFilter(
+	'editor.BlockEdit',
+	'sequential-posts-block/sequential-settings',
+	withSequentialSettings
+);

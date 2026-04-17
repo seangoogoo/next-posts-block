@@ -36,6 +36,7 @@ registerBlockVariation( 'core/query', {
 			offset: 0,
 			orderBy: 'date',
 			order: 'asc',
+			excludeSticky: false,
 		},
 	},
 	innerBlocks: [

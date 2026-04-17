@@ -21,6 +21,13 @@ use WP_REST_Request;
  * Non-singular fallback (v1.1.0): when no current post can be detected
  * (archive / home / search), the block renders the first N items of the
  * canonical list in the chosen sort order instead of returning empty.
+ *
+ * Sticky neutralization (v1.2.0): always forces `ignore_sticky_posts = 1`
+ * and clears `post__not_in` (except when our own excludeSticky flag
+ * expands the canonical list filter). This prevents WP_Query from
+ * prepending sticky posts to our result set (which would inflate the
+ * count beyond perPage) and prevents the native "Sticky posts" control
+ * from silently filtering our resolved IDs.
  */
 final class QueryFilter
 {
@@ -36,6 +43,9 @@ final class QueryFilter
 
     /** @var string Native order from the block ('asc' or 'desc'). */
     private static string $order = 'asc';
+
+    /** @var bool Custom excludeSticky attribute from the block. */
+    private static bool $exclude_sticky = false;
 
     /**
      * Hook: pre_render_block (priority 10, 2 args)
@@ -58,6 +68,7 @@ final class QueryFilter
         self::$is_sequential = true;
         self::$orderby = (string) ($parsed_block['attrs']['query']['orderBy'] ?? 'date');
         self::$order = (string) ($parsed_block['attrs']['query']['order'] ?? 'asc');
+        self::$exclude_sticky = (bool) ($parsed_block['attrs']['query']['excludeSticky'] ?? false);
 
         return $pre_render;
     }
@@ -75,6 +86,8 @@ final class QueryFilter
         }
 
         self::$is_sequential = false;
+        $exclude_sticky = self::$exclude_sticky;
+        self::$exclude_sticky = false;
 
         $post_type = (string) ($block->context['query']['postType'] ?? 'post');
         $raw_count = (int) ($block->context['query']['perPage'] ?? 3);
@@ -82,7 +95,7 @@ final class QueryFilter
 
         // Build canonical list with the user's chosen sort order.
         // Resolver always goes forward — the list order defines "next".
-        $all_ids = CanonicalList::get($post_type, self::$orderby, self::$order);
+        $all_ids = CanonicalList::get($post_type, self::$orderby, self::$order, $exclude_sticky);
 
         $current_id = (new ContextDetector())->current_post_id();
         $resolved = $current_id === null
@@ -90,14 +103,21 @@ final class QueryFilter
             : (new SequentialResolver())->resolve($all_ids, $current_id, 'asc', $count);
 
         if (empty($resolved)) {
-            return array_merge($query, ['post__in' => [0], 'posts_per_page' => 1]);
+            return array_merge($query, [
+                'post__in' => [0],
+                'post__not_in' => [],
+                'posts_per_page' => 1,
+                'ignore_sticky_posts' => 1,
+            ]);
         }
 
         return array_merge($query, [
             'post__in' => $resolved,
+            'post__not_in' => [],
             'orderby' => 'post__in',
             'order' => 'ASC',
             'posts_per_page' => count($resolved),
+            'ignore_sticky_posts' => 1,
         ]);
     }
 
@@ -119,18 +139,21 @@ final class QueryFilter
 
         $orderby = (string) ($request->get_param('sequential_orderby') ?? 'date');
         $order = (string) ($request->get_param('sequential_order') ?? 'asc');
+        $exclude_sticky = (bool) $request->get_param('sequential_exclude_sticky');
         $raw_count = (int) ($args['posts_per_page'] ?? 3);
         $count = max(self::MIN_COUNT, min(self::MAX_COUNT, $raw_count));
 
-        $all_ids = CanonicalList::get($post_type, $orderby, $order);
+        $all_ids = CanonicalList::get($post_type, $orderby, $order, $exclude_sticky);
         $resolved = $context_post
             ? (new SequentialResolver())->resolve($all_ids, $context_post, 'asc', $count)
             : array_slice($all_ids, 0, $count);
 
         return array_merge($args, [
             'post__in' => $resolved ?: [0],
+            'post__not_in' => [],
             'orderby' => 'post__in',
             'order' => 'ASC',
+            'ignore_sticky_posts' => 1,
         ]);
     }
 }

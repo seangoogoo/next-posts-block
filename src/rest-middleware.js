@@ -14,10 +14,11 @@ const POST_TYPE_REST_PATTERN = /\/wp\/v2\/([a-z0-9_-]+)(\?|$)/i;
 
 /**
  * Recursively finds the first Sequential Posts block in the editor and
- * returns its orderBy/order. Returns null if the variation is absent from
- * the block tree — signals that this REST call is NOT ours to augment.
+ * returns its orderBy / order / excludeSticky. Returns null if the variation
+ * is absent from the block tree — signals that this REST call is NOT ours
+ * to augment.
  */
-function findSequentialSort() {
+function findSequentialSettings() {
 	const blocks = select( 'core/block-editor' )?.getBlocks() ?? [];
 
 	function findInBlocks( blockList ) {
@@ -29,6 +30,9 @@ function findSequentialSort() {
 				return {
 					orderby: block.attributes.query?.orderBy ?? 'date',
 					order: block.attributes.query?.order ?? 'asc',
+					excludeSticky: Boolean(
+						block.attributes.query?.excludeSticky
+					),
 				};
 			}
 			if ( block.innerBlocks?.length ) {
@@ -50,8 +54,8 @@ apiFetch.use( ( options, next ) => {
 		return next( options );
 	}
 
-	const sort = findSequentialSort();
-	if ( ! sort ) {
+	const settings = findSequentialSettings();
+	if ( ! settings ) {
 		return next( options );
 	}
 
@@ -62,9 +66,12 @@ apiFetch.use( ( options, next ) => {
 	const currentPostId = select( 'core/editor' )?.getCurrentPostId();
 	const params = [
 		'sequential_block=1',
-		`sequential_orderby=${ sort.orderby }`,
-		`sequential_order=${ sort.order }`,
+		`sequential_orderby=${ settings.orderby }`,
+		`sequential_order=${ settings.order }`,
 	];
+	if ( settings.excludeSticky ) {
+		params.push( 'sequential_exclude_sticky=1' );
+	}
 	if ( currentPostId ) {
 		params.push( `sequential_context_post=${ currentPostId }` );
 	}

@@ -4,7 +4,7 @@ Tags: block, gutenberg, query-loop, next-post, related-posts
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,12 @@ No rebuild needed. Changes are picked up on the next page load.
 * Regenerate the JS JSON file (required for block name/description in the editor): `wp i18n make-json languages/sequential-posts-block-{locale}.po --no-purge --use-map='{"src/variation.js":"build/index.js"}'` — the `--use-map` ensures the MD5 filename matches the enqueued build script, not the source.
 
 == Changelog ==
+
+= 1.2.0 =
+* New: dedicated "Sequential settings" panel with an "Exclude sticky posts from the sequence" toggle (writes to `query.excludeSticky`). When enabled, sticky posts are removed from the canonical list that drives the sequential navigation.
+* Fix: `ignore_sticky_posts` is now forced to 1 on every render — the native "Include" sticky mode was silently prepending stickies to the query result, producing more items than `perPage`. `post__not_in` is also cleared so the native "Exclude" option cannot interfere.
+* UI: the native "Sticky posts" SelectControl is hidden from the Sequential Posts sidebar. Use the new toggle instead.
+* UI: the native "Query type" toggle was hidden in v1.1.1; v1.2.0 consolidates the locking logic in a single module (`src/lock-custom-query.js`).
 
 = 1.1.0 =
 * Non-singular fallback: the block now renders the first N items of the canonical list (in the chosen sort order) when used on archives, home, search, or any page without a singular post context. Previously rendered empty.
