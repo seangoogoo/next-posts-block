@@ -1,6 +1,6 @@
 # Manual QA Checklist — Next Posts — Query Loop Block v1.2
 
-Run through this on `wp.local` after `composer install && npm install && npm run build`.
+Run through this on a local WP install after `composer install && npm install && npm run build`.
 
 ## Environment sanity
 
