@@ -26,22 +26,7 @@ N items of the canonical list.
 
 ## Installation
 
-### From source
-
-```bash
-git clone https://github.com/seangoogoo/next-posts-block.git
-cd next-posts-block
-composer install --no-dev
-npm install && npm run build
-```
-
-Then symlink or copy the folder into `wp-content/plugins/` and activate via
-**Plugins → Installed Plugins**.
-
-### From a release zip
-
-Release zips are not published yet. Build from source or watch the
-[Releases page](https://github.com/seangoogoo/next-posts-block/releases).
+Download the latest `next-posts-block.zip` from the [Releases page](https://github.com/seangoogoo/next-posts-block/releases) and install it via the WordPress admin: **Plugins → Add New Plugin → Upload Plugin**.
 
 ## Usage
 
