@@ -115,17 +115,42 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$this->assertTrue($this->get_static('is_sequential'));
 	}
 
-	public function test_pre_render_resets_armed_state_when_followed_by_non_matching_block(): void
+	public function test_pre_render_resets_armed_state_when_followed_by_non_matching_sibling_core_query(): void
 	{
-		// v1.2.1: static reset at top of pre_render prevents a prior armed
-		// state from leaking into an unrelated sibling core/query.
+		// v1.2.2: a non-matching sibling core/query (different namespace) still
+		// clears any leaked armed state from a prior arm that was short-circuited
+		// before filter_query_vars could consume it. Sibling-leak prevention is
+		// preserved despite the reset having moved below the blockName check.
 		$this->filter->pre_render(null, $this->make_parsed_block());
 		$this->assertTrue($this->get_static('is_sequential'));
 
-		$this->filter->pre_render(null, ['blockName' => 'core/paragraph', 'attrs' => []]);
+		$foreign = $this->make_parsed_block();
+		$foreign['attrs']['namespace'] = 'third-party/other';
+		$this->filter->pre_render(null, $foreign);
 
 		$this->assertFalse($this->get_static('is_sequential'));
 		$this->assertFalse($this->get_static('exclude_sticky'));
+	}
+
+	public function test_pre_render_preserves_armed_state_across_inner_non_query_blocks(): void
+	{
+		// v1.2.2: the reset only fires when blockName === 'core/query'. Inner
+		// blocks (core/post-template, core/post-title, etc.) that WP renders
+		// between the parent core/query's pre_render (arm) and its
+		// query_loop_block_query_vars (consume) must NOT wipe the armed state.
+		// Regression guard against the v1.2.1 bug fixed by v1.2.2.
+		$parsed = $this->make_parsed_block();
+		$parsed['attrs']['query']['excludeSticky'] = true;
+		$this->filter->pre_render(null, $parsed);
+		$this->assertTrue($this->get_static('is_sequential'));
+		$this->assertTrue($this->get_static('exclude_sticky'));
+
+		foreach (['core/post-template', 'core/post-title', 'core/paragraph'] as $inner) {
+			$this->filter->pre_render(null, ['blockName' => $inner, 'attrs' => []]);
+		}
+
+		$this->assertTrue($this->get_static('is_sequential'));
+		$this->assertTrue($this->get_static('exclude_sticky'));
 	}
 
 	// ------------------------------------------------------------------
