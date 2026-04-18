@@ -8,7 +8,8 @@
         "build": "wp-scripts build",
         "start": "wp-scripts start",
         "lint:js": "wp-scripts lint-js src",
-        "format": "wp-scripts format src"
+        "format": "wp-scripts format src",
+        "plugin-zip": "wp-scripts plugin-zip"
     },
     "devDependencies": {
         "@wordpress/scripts": "^27.0.0"
