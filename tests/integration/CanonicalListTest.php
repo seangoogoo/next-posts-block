@@ -129,6 +129,24 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame($expected, $result);
 	}
 
+	public function test_build_with_sticky_only_returns_sticky_ids_in_orderby(): void
+	{
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'only']);
+		$expected = [
+			$this->post_ids[1], // Bravo (sticky, 2024-01-02)
+			$this->post_ids[6], // Golf  (sticky, 2024-01-07)
+		];
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_sticky_only_and_no_stickies_returns_empty(): void
+	{
+		delete_option('sticky_posts');
+		wp_cache_flush();
+
+		$this->assertSame([], CanonicalList::build(['postType' => 'post', 'sticky' => 'only']));
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));

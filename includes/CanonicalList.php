@@ -120,6 +120,13 @@ final class CanonicalList
             return array_values(array_diff($ids, $sticky_option));
         }
 
+        if ($mode === 'only') {
+            if (empty($sticky_option)) {
+                return [];
+            }
+            return array_values(array_intersect($ids, $sticky_option));
+        }
+
         return $ids;
     }
 
