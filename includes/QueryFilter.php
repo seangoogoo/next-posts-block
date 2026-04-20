@@ -38,14 +38,8 @@ final class QueryFilter
     /** @var bool Whether the currently-rendering core/query is our variation. */
     private static bool $is_sequential = false;
 
-    /** @var string Native orderBy from the block ('date' or 'title'). */
-    private static string $orderby = 'date';
-
-    /** @var string Native order from the block ('asc' or 'desc'). */
-    private static string $order = 'asc';
-
-    /** @var bool Custom excludeSticky attribute from the block. */
-    private static bool $exclude_sticky = false;
+    /** @var array<string, mixed> Captured native query attrs from pre_render. */
+    private static array $query_attrs = [];
 
     /**
      * Hook: pre_render_block (priority 10, 2 args)
@@ -68,16 +62,14 @@ final class QueryFilter
         // not wipe the state we just armed, as they fire pre_render_block between
         // our core/query's pre_render and query_loop_block_query_vars consumption.
         self::$is_sequential = false;
-        self::$exclude_sticky = false;
+        self::$query_attrs = [];
 
         if (($parsed_block['attrs']['namespace'] ?? '') !== self::NAMESPACE) {
             return $pre_render;
         }
 
         self::$is_sequential = true;
-        self::$orderby = (string) ($parsed_block['attrs']['query']['orderBy'] ?? 'date');
-        self::$order = (string) ($parsed_block['attrs']['query']['order'] ?? 'asc');
-        self::$exclude_sticky = (bool) ($parsed_block['attrs']['query']['excludeSticky'] ?? false);
+        self::$query_attrs = (array) ($parsed_block['attrs']['query'] ?? []);
 
         return $pre_render;
     }
@@ -95,21 +87,15 @@ final class QueryFilter
         }
 
         self::$is_sequential = false;
-        $exclude_sticky = self::$exclude_sticky;
-        self::$exclude_sticky = false;
+        $attrs = self::$query_attrs;
+        self::$query_attrs = [];
 
-        $post_type = (string) ($block->context['query']['postType'] ?? 'post');
         $raw_count = (int) ($block->context['query']['perPage'] ?? 3);
         $count = max(self::MIN_COUNT, min(self::MAX_COUNT, $raw_count));
 
-        // Build canonical list with the user's chosen sort order.
-        // Resolver always goes forward — the list order defines "next".
-        $all_ids = CanonicalList::build([
-            'postType' => $post_type,
-            'orderBy'  => self::$orderby,
-            'order'    => self::$order,
-            'sticky'   => $exclude_sticky ? 'exclude' : 'ignore',
-        ]);
+        // Build canonical list from the full native attrs bag; resolver
+        // always walks forward, so the list order defines "next".
+        $all_ids = CanonicalList::build($attrs);
 
         $current_id = (new ContextDetector())->current_post_id();
         $resolved = $current_id === null

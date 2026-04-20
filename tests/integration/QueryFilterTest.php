@@ -93,14 +93,15 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$parsed = $this->make_parsed_block();
 		$parsed['attrs']['query']['orderBy'] = 'title';
 		$parsed['attrs']['query']['order'] = 'desc';
-		$parsed['attrs']['query']['excludeSticky'] = true;
+		$parsed['attrs']['query']['sticky'] = 'exclude';
 
 		$this->filter->pre_render(null, $parsed);
 
 		$this->assertTrue($this->get_static('is_sequential'));
-		$this->assertSame('title', $this->get_static('orderby'));
-		$this->assertSame('desc', $this->get_static('order'));
-		$this->assertTrue($this->get_static('exclude_sticky'));
+		$attrs = $this->get_static('query_attrs');
+		$this->assertSame('title', $attrs['orderBy']);
+		$this->assertSame('desc', $attrs['order']);
+		$this->assertSame('exclude', $attrs['sticky']);
 	}
 
 	public function test_pre_render_arms_flag_on_non_singular_context(): void
@@ -129,7 +130,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$this->filter->pre_render(null, $foreign);
 
 		$this->assertFalse($this->get_static('is_sequential'));
-		$this->assertFalse($this->get_static('exclude_sticky'));
+		$this->assertSame([], $this->get_static('query_attrs'));
 	}
 
 	public function test_pre_render_preserves_armed_state_across_inner_non_query_blocks(): void
@@ -140,17 +141,17 @@ final class QueryFilterTest extends WP_UnitTestCase
 		// query_loop_block_query_vars (consume) must NOT wipe the armed state.
 		// Regression guard against the v1.2.1 bug fixed by v1.2.2.
 		$parsed = $this->make_parsed_block();
-		$parsed['attrs']['query']['excludeSticky'] = true;
+		$parsed['attrs']['query']['sticky'] = 'exclude';
 		$this->filter->pre_render(null, $parsed);
 		$this->assertTrue($this->get_static('is_sequential'));
-		$this->assertTrue($this->get_static('exclude_sticky'));
+		$this->assertSame('exclude', $this->get_static('query_attrs')['sticky']);
 
 		foreach (['core/post-template', 'core/post-title', 'core/paragraph'] as $inner) {
 			$this->filter->pre_render(null, ['blockName' => $inner, 'attrs' => []]);
 		}
 
 		$this->assertTrue($this->get_static('is_sequential'));
-		$this->assertTrue($this->get_static('exclude_sticky'));
+		$this->assertSame('exclude', $this->get_static('query_attrs')['sticky']);
 	}
 
 	// ------------------------------------------------------------------
@@ -247,11 +248,11 @@ final class QueryFilterTest extends WP_UnitTestCase
 
 	public function test_filter_query_vars_exclude_sticky_filters_sticky_from_result(): void
 	{
-		// v1.2.0: query.excludeSticky=true must propagate to CanonicalList::get.
+		// v1.3.0: query.sticky='exclude' must propagate to CanonicalList::build.
 		$this->go_to(home_url('/'));
 
 		$parsed = $this->make_parsed_block();
-		$parsed['attrs']['query']['excludeSticky'] = true;
+		$parsed['attrs']['query']['sticky'] = 'exclude';
 		$parsed['attrs']['query']['perPage'] = 10;
 		$this->filter->pre_render(null, $parsed);
 
@@ -289,7 +290,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 		add_filter('query_loop_block_query_vars', [$this->filter, 'filter_query_vars'], 10, 3);
 
 		try {
-			$markup = '<!-- wp:query {"namespace":"next-posts-block/query","query":{"postType":"post","perPage":3,"inherit":false,"orderBy":"date","order":"asc","excludeSticky":false}} -->'
+			$markup = '<!-- wp:query {"namespace":"next-posts-block/query","query":{"postType":"post","perPage":3,"inherit":false,"orderBy":"date","order":"asc","sticky":"ignore"}} -->'
 				. '<!-- wp:post-template -->'
 				. '<!-- wp:post-title /-->'
 				. '<!-- /wp:post-template -->'
@@ -426,6 +427,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 						'perPage' => 3,
 						'orderBy' => 'date',
 						'order' => 'asc',
+						'sticky' => 'ignore',
 					],
 				],
 				'innerBlocks' => [],
@@ -485,9 +487,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 	{
 		$defaults = [
 			'is_sequential' => false,
-			'orderby' => 'date',
-			'order' => 'asc',
-			'exclude_sticky' => false,
+			'query_attrs' => [],
 		];
 		foreach ($defaults as $name => $value) {
 			$this->static_prop($name)->setValue(null, $value);
