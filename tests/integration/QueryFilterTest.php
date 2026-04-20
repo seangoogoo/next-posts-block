@@ -362,8 +362,12 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$request = new WP_REST_Request('GET', '/wp/v2/posts');
 		$request->set_param('sequential_block', '1');
 		$request->set_param('sequential_context_post', (string) $this->post_ids[2]);
-		$request->set_param('sequential_orderby', 'date');
-		$request->set_param('sequential_order', 'asc');
+		$request->set_param('sequential_query_attrs', json_encode([
+			'postType' => 'post',
+			'orderBy'  => 'date',
+			'order'    => 'asc',
+			'sticky'   => 'ignore',
+		]));
 
 		$result = $this->filter->filter_rest_query(
 			'post',
@@ -386,6 +390,10 @@ final class QueryFilterTest extends WP_UnitTestCase
 		// Editor-template preview case: marker present, no context post.
 		$request = new WP_REST_Request('GET', '/wp/v2/posts');
 		$request->set_param('sequential_block', '1');
+		$request->set_param('sequential_query_attrs', json_encode([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+		]));
 
 		$result = $this->filter->filter_rest_query('post', ['posts_per_page' => 3], $request);
 
@@ -400,7 +408,10 @@ final class QueryFilterTest extends WP_UnitTestCase
 	{
 		$request = new WP_REST_Request('GET', '/wp/v2/posts');
 		$request->set_param('sequential_block', '1');
-		$request->set_param('sequential_exclude_sticky', '1');
+		$request->set_param('sequential_query_attrs', json_encode([
+			'postType' => 'post',
+			'sticky'   => 'exclude',
+		]));
 
 		$result = $this->filter->filter_rest_query('post', ['posts_per_page' => 10], $request);
 
@@ -408,6 +419,20 @@ final class QueryFilterTest extends WP_UnitTestCase
 			$this->assertNotContains($sticky_id, $result['post__in']);
 		}
 		$this->assertCount(4, $result['post__in']);
+	}
+
+	public function test_rest_filter_decodes_sequential_query_attrs_json(): void
+	{
+		$request = new WP_REST_Request('GET', '/wp/v2/posts');
+		$request->set_param('sequential_block', '1');
+		$request->set_param('sequential_query_attrs', json_encode(['sticky' => 'only']));
+		$request->set_param('sequential_context_post', (string) $this->post_ids[1]); // a sticky
+
+		// sticky='only' canonical = [post_ids[1], post_ids[4]]. Anchor=post_ids[1]
+		// → next sticky = post_ids[4].
+		$result = $this->filter->filter_rest_query('post', ['posts_per_page' => 3], $request);
+
+		$this->assertSame($this->post_ids[4], $result['post__in'][0]);
 	}
 
 	// ------------------------------------------------------------------

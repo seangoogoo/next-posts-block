@@ -137,18 +137,24 @@ final class QueryFilter
             return $args;
         }
 
-        $orderby = (string) ($request->get_param('sequential_orderby') ?? 'date');
-        $order = (string) ($request->get_param('sequential_order') ?? 'asc');
-        $exclude_sticky = (bool) $request->get_param('sequential_exclude_sticky');
+        $raw_attrs = $request->get_param('sequential_query_attrs');
+        $attrs = [];
+        if (is_string($raw_attrs) && $raw_attrs !== '') {
+            $decoded = json_decode($raw_attrs, true);
+            if (is_array($decoded)) {
+                $attrs = $decoded;
+            }
+        }
+
+        // REST route is post-type scoped; respect that if attrs omit postType.
+        if (empty($attrs['postType'])) {
+            $attrs['postType'] = $post_type;
+        }
+
         $raw_count = (int) ($args['posts_per_page'] ?? 3);
         $count = max(self::MIN_COUNT, min(self::MAX_COUNT, $raw_count));
 
-        $all_ids = CanonicalList::build([
-            'postType' => $post_type,
-            'orderBy'  => $orderby,
-            'order'    => $order,
-            'sticky'   => $exclude_sticky ? 'exclude' : 'ignore',
-        ]);
+        $all_ids = CanonicalList::build($attrs);
         $resolved = $context_post
             ? (new SequentialResolver())->resolve($all_ids, $context_post, 'asc', $count)
             : array_slice($all_ids, 0, $count);
