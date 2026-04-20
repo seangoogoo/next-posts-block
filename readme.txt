@@ -4,27 +4,30 @@ Tags: query-loop, block, next-post, related-posts, post-navigation
 Requires at least: 6.1
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.2.2
+Stable tag: 1.3.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A Query Loop variation that displays the next N posts after the current one, with wrap-around — configurable order, any post type.
+A Query Loop variation that anchors N posts to the current one — continues the flow you curate with native filters (taxonomy, author, keyword, sticky modes) and wraps at boundaries.
 
 == Description ==
 
-Next Posts is a variation of the native Query Loop block. It appears in the Block Editor inserter as "Next Posts". On any single-post page, it renders the N posts that come after the current one in the chosen sort order, with silent wrap-around at list boundaries — so readers always see a full set of suggestions, even when viewing the last post in a sequence. When the block is used outside a singular context (archives, home, search, template previews), it falls back to the first N items of the canonical list in the chosen sort order instead of rendering empty.
+Next Posts is a variation of the native Query Loop block. It appears in the Block Editor inserter as "Next Posts". On any single-post page, it renders the N posts that follow the current one in the list you configured, with silent wrap-around at list boundaries — so readers always see a full set of suggestions, even when viewing the last post in a sequence. When the block is used outside a singular context (archives, home, search, template previews), it falls back to the first N items of the list instead of rendering empty.
 
-Because Next Posts reuses the native Query Loop block, authors configure the card template visually with the standard Post blocks (Post Title, Post Featured Image, Post Excerpt, and so on). The block is well suited for post navigation, related posts rails, and any layout that needs a sequential list of entries tied to the current post.
+The block is an **anchored continuation of a curated flow**: it honors every native Query Loop filter in the sidebar (taxonomy, author, keyword) and all four sticky modes (Include / Ignore / Exclude / Only), then applies the anchor+wrap on top. The list the block walks is exactly the list your filters describe.
+
+Because Next Posts reuses the native Query Loop block, authors configure the card template visually with the standard Post blocks (Post Title, Post Featured Image, Post Excerpt, and so on). The block is well suited for post navigation, related-posts rails, and any layout that needs a sequential list of entries tied to the current post.
 
 **Key features:**
 
 * Works with any public post type
+* Honors native Query Loop filters: taxonomy, author, keyword, sticky modes
 * Visually editable card template using native Post blocks (Post Title, Post Featured Image, Post Excerpt, etc.)
 * Uses the native Query Loop ordering controls (date / title, ASC / DESC)
 * Configurable number of items (1–10)
 * Silent wrap-around at end/start of the list
 * Non-singular fallback renders the first N items of the canonical list
-* Editor preview reflects order changes in real time
+* Editor preview reflects filter and order changes in real time
 * Zero third-party runtime dependencies
 
 == Installation ==
@@ -62,7 +65,7 @@ Yes. The block works with any post type registered as `public`.
 
 = Can I exclude sticky posts from the sequence? =
 
-When enabled, sticky posts are removed from the sequence. Sticky posts never inflate the item count beyond the number you configured, regardless of this setting.
+Yes — use the native "Sticky posts" control in the block sidebar. Choose "Exclude" to drop stickies, "Only" to limit the sequence to stickies, "Ignore" to keep them in their natural date position, or leave it on the default "Include" mode. Sticky posts never inflate the item count beyond the number you configured, regardless of the mode.
 
 == Screenshots ==
 
@@ -71,6 +74,12 @@ When enabled, sticky posts are removed from the sequence. Sticky posts never inf
 3. The block sidebar settings panel.
 
 == Changelog ==
+
+= 1.3.0 =
+* Added: Native support for taxonomy, author, and keyword filters in the block sidebar — the block now honors every Query Loop filter and applies the anchor+wrap on top.
+* Added: Four sticky-posts modes (Include / Ignore / Exclude / Only) matching the native `core/query` behavior.
+* Removed: Custom "Exclude sticky posts from the sequence" toggle (replaced by the native Sticky posts control). The native control is now visible and fully wired to the server-side list builder.
+* Technical: `CanonicalList::build()` replaces `::get()` and accepts the full native `query` attributes bag; REST preview middleware sends a single JSON `sequential_query_attrs` param for editor-server parity on any filter combination.
 
 = 1.2.2 =
 * Fix: the block could render more posts than its "Number of posts" setting when sticky posts existed on the site. Sticky-posts neutralization has been restored (it regressed in 1.2.1).
@@ -98,6 +107,9 @@ When enabled, sticky posts are removed from the sequence. Sticky posts never inf
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Native support for taxonomy, author, and keyword filters, plus four sticky-post modes. The custom "Exclude sticky" toggle is replaced by the native Sticky posts control — existing blocks continue to work; the `excludeSticky` attribute is ignored.
 
 = 1.2.2 =
 Fix: sticky-posts neutralization (regressed in 1.2.1) is restored. Recommended update if you saw extra posts prepended to the block's output.

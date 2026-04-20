@@ -60,44 +60,201 @@ final class CanonicalListTest extends WP_UnitTestCase
 		parent::tearDown();
 	}
 
-	public function test_returns_published_ids_ordered_by_date_asc_by_default(): void
+	public function test_build_with_empty_attrs_returns_all_published_post_ids_in_natural_order(): void
 	{
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
 		$expected = [
-			$this->post_ids[0], // Alpha   2024-01-01
-			$this->post_ids[1], // Bravo   2024-01-02
-			$this->post_ids[2], // Charlie 2024-01-03
-			$this->post_ids[3], // Delta   2024-01-04
-			$this->post_ids[5], // Foxtrot 2024-01-06 (Echo @ 2024-01-05 is draft)
-			$this->post_ids[6], // Golf    2024-01-07
-			$this->post_ids[7], // Hotel   2024-01-08
+			$this->post_ids[0], // Alpha
+			$this->post_ids[1], // Bravo (sticky)
+			$this->post_ids[2], // Charlie
+			$this->post_ids[3], // Delta
+			$this->post_ids[5], // Foxtrot (Echo @ draft excluded)
+			$this->post_ids[6], // Golf (sticky)
+			$this->post_ids[7], // Hotel
 		];
-		$this->assertSame($expected, CanonicalList::get('post'));
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_sticky_include_prepends_stickies_in_orderby(): void
+	{
+		// orderBy date ASC → base order Alpha, Bravo*, Charlie, Delta, Foxtrot, Golf*, Hotel
+		// Include mode → stickies first (Bravo, Golf), then non-stickies in natural order.
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => '']);
+		$expected = [
+			$this->post_ids[1], // Bravo   (sticky)
+			$this->post_ids[6], // Golf    (sticky)
+			$this->post_ids[0], // Alpha
+			$this->post_ids[2], // Charlie
+			$this->post_ids[3], // Delta
+			$this->post_ids[5], // Foxtrot
+			$this->post_ids[7], // Hotel
+		];
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_sticky_include_and_no_stickies_is_identical_to_ignore(): void
+	{
+		delete_option('sticky_posts');
+		wp_cache_flush();
+
+		$include = CanonicalList::build(['postType' => 'post', 'sticky' => '']);
+		$ignore  = CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
+		$this->assertSame($ignore, $include);
+	}
+
+	public function test_build_with_sticky_exclude_removes_sticky_ids(): void
+	{
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'exclude']);
+		$expected = [
+			$this->post_ids[0], // Alpha
+			$this->post_ids[2], // Charlie
+			$this->post_ids[3], // Delta
+			$this->post_ids[5], // Foxtrot
+			$this->post_ids[7], // Hotel
+		];
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_sticky_only_returns_sticky_ids_in_orderby(): void
+	{
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'only']);
+		$expected = [
+			$this->post_ids[1], // Bravo (sticky, 2024-01-02)
+			$this->post_ids[6], // Golf  (sticky, 2024-01-07)
+		];
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_sticky_only_and_no_stickies_returns_empty(): void
+	{
+		delete_option('sticky_posts');
+		wp_cache_flush();
+
+		$this->assertSame([], CanonicalList::build(['postType' => 'post', 'sticky' => 'only']));
+	}
+
+	/** @return array{news:int, opinion:int} */
+	private function seed_categories(): array
+	{
+		$news_id = self::factory()->category->create(['name' => 'news']);
+		$opinion_id = self::factory()->category->create(['name' => 'opinion']);
+
+		wp_set_post_categories($this->post_ids[0], [$news_id]);    // Alpha    — news
+		wp_set_post_categories($this->post_ids[1], [$news_id]);    // Bravo    — news (sticky)
+		wp_set_post_categories($this->post_ids[2], [$opinion_id]); // Charlie  — opinion
+		wp_set_post_categories($this->post_ids[5], [$news_id]);    // Foxtrot  — news
+
+		wp_cache_flush();
+		return ['news' => $news_id, 'opinion' => $opinion_id];
+	}
+
+	public function test_build_with_tax_query_filters_by_category(): void
+	{
+		$cats = $this->seed_categories();
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+			'taxQuery' => ['category' => [$cats['news']]],
+		]);
+		$expected = [
+			$this->post_ids[0], // Alpha
+			$this->post_ids[1], // Bravo (sticky, still in 'news')
+			$this->post_ids[5], // Foxtrot
+		];
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_tax_query_include_prepends_only_matching_stickies(): void
+	{
+		$cats = $this->seed_categories();
+		// Filter to 'opinion' — only Charlie matches. Golf (sticky) is NOT in 'opinion' → not prepended.
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => '', // Include
+			'taxQuery' => ['category' => [$cats['opinion']]],
+		]);
+		$this->assertSame([$this->post_ids[2]], $result);
+	}
+
+	public function test_build_with_author_filter_restricts_to_csv_of_user_ids(): void
+	{
+		$editor_id = self::factory()->user->create(['role' => 'editor']);
+		wp_update_post(['ID' => $this->post_ids[3], 'post_author' => $editor_id]);
+		wp_update_post(['ID' => $this->post_ids[5], 'post_author' => $editor_id]);
+		wp_cache_flush();
+
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+			'author'   => (string) $editor_id,
+		]);
+		$this->assertSame([$this->post_ids[3], $this->post_ids[5]], $result);
+	}
+
+	public function test_build_with_search_filters_by_keyword(): void
+	{
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+			'search'   => 'Alpha',
+		]);
+		$this->assertSame([$this->post_ids[0]], $result);
+	}
+
+	public function test_build_exclude_with_author_filter(): void
+	{
+		// Exclude mode + author filter — interaction
+		$editor_id = self::factory()->user->create(['role' => 'editor']);
+		wp_update_post(['ID' => $this->post_ids[3], 'post_author' => $editor_id]); // Delta
+		wp_update_post(['ID' => $this->post_ids[6], 'post_author' => $editor_id]); // Golf (sticky)
+		wp_cache_flush();
+
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'exclude',
+			'author'   => (string) $editor_id,
+		]);
+		// Editor wrote Delta + Golf; sticky exclude removes Golf → only Delta
+		$this->assertSame([$this->post_ids[3]], $result);
+	}
+
+	public function test_build_only_with_search_filter(): void
+	{
+		// 'only' mode + search — intersection of stickies and keyword
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'only',
+			'search'   => 'Bravo', // matches sticky Bravo, not Golf
+		]);
+		$this->assertSame([$this->post_ids[1]], $result);
 	}
 
 	public function test_excludes_draft_posts(): void
 	{
-		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
+		$this->assertNotContains($this->post_ids[4], $result);
 	}
 
 	public function test_returns_empty_for_nonexistent_post_type(): void
 	{
-		$this->assertSame([], CanonicalList::get('no_such_type'));
+		$this->assertSame([], CanonicalList::build(['postType' => 'no_such_type']));
 	}
 
 	public function test_second_call_uses_cache_no_extra_query(): void
 	{
 		global $wpdb;
 
-		CanonicalList::get('post');
+		CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
 		$queries_before = $wpdb->num_queries;
 
-		CanonicalList::get('post');
+		CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
 		$this->assertSame($queries_before, $wpdb->num_queries);
 	}
 
 	public function test_cache_invalidates_when_post_is_created(): void
 	{
-		$before = CanonicalList::get('post');
+		$attrs = ['postType' => 'post', 'sticky' => 'ignore'];
+		$before = CanonicalList::build($attrs);
 
 		$new_id = self::factory()->post->create([
 			'post_title' => 'Zulu',
@@ -106,7 +263,7 @@ final class CanonicalListTest extends WP_UnitTestCase
 			'post_status' => 'publish',
 		]);
 
-		$after = CanonicalList::get('post');
+		$after = CanonicalList::build($attrs);
 
 		$this->assertNotSame($before, $after);
 		$this->assertContains($new_id, $after);
@@ -125,33 +282,26 @@ final class CanonicalListTest extends WP_UnitTestCase
 			$this->post_ids[1], // Bravo
 			$this->post_ids[0], // Alpha
 		];
-		$this->assertSame($expected, CanonicalList::get('post', 'title', 'DESC'));
+		$this->assertSame($expected, CanonicalList::build([
+			'postType' => 'post',
+			'orderBy'  => 'title',
+			'order'    => 'DESC',
+			'sticky'   => 'ignore',
+		]));
 	}
 
-	public function test_exclude_sticky_removes_sticky_ids_from_list(): void
+	public function test_build_cache_yields_same_list_across_calls_with_identical_attrs(): void
 	{
-		$result = CanonicalList::get('post', 'date', 'ASC', true);
-
-		foreach ($this->sticky_ids as $sticky_id) {
-			$this->assertNotContains($sticky_id, $result);
-		}
-		$this->assertContains($this->post_ids[0], $result, 'Non-sticky posts should remain.');
+		$attrs = ['postType' => 'post', 'sticky' => 'ignore'];
+		$first = CanonicalList::build($attrs);
+		$second = CanonicalList::build($attrs);
+		$this->assertSame($first, $second);
 	}
 
-	public function test_cache_keys_distinct_between_with_and_without_sticky(): void
+	public function test_build_cache_distinguishes_different_attrs(): void
 	{
-		global $wpdb;
-
-		$with_sticky = CanonicalList::get('post', 'date', 'ASC', false);
-		$queries_between = $wpdb->num_queries;
-
-		$without_sticky = CanonicalList::get('post', 'date', 'ASC', true);
-		$this->assertGreaterThan(
-			$queries_between,
-			$wpdb->num_queries,
-			'exclude_sticky=true must bypass the exclude_sticky=false cache entry.'
-		);
-
-		$this->assertNotSame($with_sticky, $without_sticky);
+		$include = CanonicalList::build(['postType' => 'post', 'sticky' => '']);
+		$ignore  = CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
+		$this->assertNotSame($include, $ignore); // prepend differs
 	}
 }

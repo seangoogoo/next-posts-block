@@ -17,59 +17,171 @@ final class CanonicalList
 
     private const ALLOWED_ORDERBY = ['date', 'title'];
     private const ALLOWED_ORDER = ['ASC', 'DESC'];
+    private const ALLOWED_STICKY = ['', 'ignore', 'exclude', 'only'];
 
     /**
-     * @param string $post_type      WordPress post type slug.
-     * @param string $orderby        'date' or 'title'.
-     * @param string $order          'ASC' or 'DESC'.
-     * @param bool   $exclude_sticky When true, sticky posts are removed from the list.
+     * @param array<string, mixed> $query_attrs  Block `query` attributes bag.
      * @return int[] Ordered list of published post IDs.
      */
-    public static function get(
-        string $post_type,
-        string $orderby = 'date',
-        string $order = 'ASC',
-        bool $exclude_sticky = false
-    ): array {
-        if (!post_type_exists($post_type)) {
+    public static function build(array $query_attrs): array
+    {
+        $normalized = self::normalize($query_attrs);
+        if ($normalized === null) {
             return [];
         }
 
-        $orderby = in_array($orderby, self::ALLOWED_ORDERBY, true) ? $orderby : 'date';
-        $order = in_array(strtoupper($order), self::ALLOWED_ORDER, true) ? strtoupper($order) : 'ASC';
-
         $last_changed = wp_cache_get_last_changed('posts');
-        $cache_flag = $exclude_sticky ? 'no_sticky' : 'with_sticky';
-        $cache_key = "canonical:{$post_type}:{$orderby}:{$order}:{$cache_flag}:{$last_changed}";
+        $cache_key = 'canonical:' . md5(serialize($normalized)) . ':' . $last_changed;
 
         $cached = wp_cache_get($cache_key, self::CACHE_GROUP);
         if ($cached !== false) {
             return $cached;
         }
 
-        $args = [
-            'post_type' => $post_type,
-            'post_status' => 'publish',
-            'posts_per_page' => -1,
-            'fields' => 'ids',
-            'orderby' => $orderby,
-            'order' => $order,
-            'no_found_rows' => true,
-            'suppress_filters' => true,
-            'ignore_sticky_posts' => 1,
-        ];
-
-        if ($exclude_sticky) {
-            $sticky_ids = get_option('sticky_posts', []);
-            if (!empty($sticky_ids)) {
-                $args['post__not_in'] = array_map('intval', (array) $sticky_ids);
-            }
-        }
-
+        $args = self::build_query_args($normalized);
         $query = new \WP_Query($args);
-
         $ids = array_map('intval', $query->posts);
+
+        $ids = self::apply_sticky_mode($ids, $normalized['sticky'], $args);
+
         wp_cache_set($cache_key, $ids, self::CACHE_GROUP, self::CACHE_TTL);
         return $ids;
     }
+
+    /**
+     * @param array<string, mixed> $query_attrs
+     * @return array<string, mixed>|null Null if postType invalid.
+     */
+    private static function normalize(array $query_attrs): ?array
+    {
+        $post_type = (string) ($query_attrs['postType'] ?? 'post');
+        if (!post_type_exists($post_type)) {
+            return null;
+        }
+
+        $orderby_raw = (string) ($query_attrs['orderBy'] ?? 'date');
+        $order_raw = strtoupper((string) ($query_attrs['order'] ?? 'ASC'));
+        $sticky_raw = (string) ($query_attrs['sticky'] ?? '');
+
+        $search = trim((string) ($query_attrs['search'] ?? ''));
+
+        $author_raw = (string) ($query_attrs['author'] ?? '');
+        $author = array_values(array_filter(
+            array_map('intval', $author_raw === '' ? [] : explode(',', $author_raw)),
+            static fn($id) => $id > 0
+        ));
+
+        $tax_query_raw = $query_attrs['taxQuery'] ?? [];
+        $tax_query = [];
+        if (is_array($tax_query_raw)) {
+            foreach ($tax_query_raw as $taxonomy => $term_ids) {
+                if (!taxonomy_exists((string) $taxonomy)) {
+                    continue;
+                }
+                $ids = array_values(array_filter(
+                    array_map('intval', (array) $term_ids),
+                    static fn($id) => $id > 0
+                ));
+                if (!empty($ids)) {
+                    $tax_query[(string) $taxonomy] = $ids;
+                }
+            }
+        }
+
+        return [
+            'postType' => $post_type,
+            'orderBy'  => in_array($orderby_raw, self::ALLOWED_ORDERBY, true) ? $orderby_raw : 'date',
+            'order'    => in_array($order_raw, self::ALLOWED_ORDER, true) ? $order_raw : 'ASC',
+            'sticky'   => in_array($sticky_raw, self::ALLOWED_STICKY, true) ? $sticky_raw : '',
+            'taxQuery' => $tax_query,
+            'author'   => $author,
+            'search'   => $search,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $n  Normalized attrs.
+     * @return array<string, mixed> WP_Query args.
+     */
+    private static function build_query_args(array $n): array
+    {
+        $args = [
+            'post_type'           => $n['postType'],
+            'post_status'         => 'publish',
+            'posts_per_page'      => -1,
+            'fields'              => 'ids',
+            'orderby'             => $n['orderBy'],
+            'order'               => $n['order'],
+            'no_found_rows'       => true,
+            'suppress_filters'    => true,
+            'ignore_sticky_posts' => 1,
+        ];
+
+        if (!empty($n['author'])) {
+            $args['author__in'] = $n['author'];
+        }
+
+        if ($n['search'] !== '') {
+            $args['s'] = $n['search'];
+        }
+
+        if (!empty($n['taxQuery'])) {
+            $clauses = [];
+            foreach ($n['taxQuery'] as $taxonomy => $term_ids) {
+                $clauses[] = [
+                    'taxonomy' => $taxonomy,
+                    'field'    => 'term_id',
+                    'terms'    => $term_ids,
+                    'operator' => 'IN',
+                ];
+            }
+            if (count($clauses) > 1) {
+                $clauses['relation'] = 'AND';
+            }
+            $args['tax_query'] = $clauses;
+        }
+
+        return $args;
+    }
+
+    /**
+     * @param int[] $ids
+     * @param string $mode
+     * @param array<string, mixed> $args
+     * @return int[]
+     */
+    private static function apply_sticky_mode(array $ids, string $mode, array $args): array
+    {
+        if ($mode === 'ignore' || empty($ids)) {
+            return $ids;
+        }
+
+        $sticky_option = array_map('intval', (array) get_option('sticky_posts', []));
+
+        if ($mode === '') {
+            if (empty($sticky_option)) {
+                return $ids;
+            }
+            $matching_stickies = array_values(array_intersect($ids, $sticky_option));
+            $non_stickies      = array_values(array_diff($ids, $matching_stickies));
+            return array_merge($matching_stickies, $non_stickies);
+        }
+
+        if ($mode === 'exclude') {
+            if (empty($sticky_option)) {
+                return $ids;
+            }
+            return array_values(array_diff($ids, $sticky_option));
+        }
+
+        if ($mode === 'only') {
+            if (empty($sticky_option)) {
+                return [];
+            }
+            return array_values(array_intersect($ids, $sticky_option));
+        }
+
+        return $ids;
+    }
+
 }

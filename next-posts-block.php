@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Next Posts — Query Loop Block
  * Description:       Query Loop variation that displays posts sequentially relative to the current post, with wrap-around. Supports ordering by date or title.
- * Version:           1.2.2
+ * Version:           1.3.0
  * Requires at least: 6.1
  * Requires PHP:      7.4
  * Author:            Jensen SIU
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('NEXT_POSTS_BLOCK_VERSION', '1.2.2');
+define('NEXT_POSTS_BLOCK_VERSION', '1.3.0');
 define('NEXT_POSTS_BLOCK_PATH', plugin_dir_path(__FILE__));
 define('NEXT_POSTS_BLOCK_URL', plugin_dir_url(__FILE__));
 

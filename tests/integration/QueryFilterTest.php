@@ -93,14 +93,15 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$parsed = $this->make_parsed_block();
 		$parsed['attrs']['query']['orderBy'] = 'title';
 		$parsed['attrs']['query']['order'] = 'desc';
-		$parsed['attrs']['query']['excludeSticky'] = true;
+		$parsed['attrs']['query']['sticky'] = 'exclude';
 
 		$this->filter->pre_render(null, $parsed);
 
 		$this->assertTrue($this->get_static('is_sequential'));
-		$this->assertSame('title', $this->get_static('orderby'));
-		$this->assertSame('desc', $this->get_static('order'));
-		$this->assertTrue($this->get_static('exclude_sticky'));
+		$attrs = $this->get_static('query_attrs');
+		$this->assertSame('title', $attrs['orderBy']);
+		$this->assertSame('desc', $attrs['order']);
+		$this->assertSame('exclude', $attrs['sticky']);
 	}
 
 	public function test_pre_render_arms_flag_on_non_singular_context(): void
@@ -129,7 +130,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$this->filter->pre_render(null, $foreign);
 
 		$this->assertFalse($this->get_static('is_sequential'));
-		$this->assertFalse($this->get_static('exclude_sticky'));
+		$this->assertSame([], $this->get_static('query_attrs'));
 	}
 
 	public function test_pre_render_preserves_armed_state_across_inner_non_query_blocks(): void
@@ -140,17 +141,17 @@ final class QueryFilterTest extends WP_UnitTestCase
 		// query_loop_block_query_vars (consume) must NOT wipe the armed state.
 		// Regression guard against the v1.2.1 bug fixed by v1.2.2.
 		$parsed = $this->make_parsed_block();
-		$parsed['attrs']['query']['excludeSticky'] = true;
+		$parsed['attrs']['query']['sticky'] = 'exclude';
 		$this->filter->pre_render(null, $parsed);
 		$this->assertTrue($this->get_static('is_sequential'));
-		$this->assertTrue($this->get_static('exclude_sticky'));
+		$this->assertSame('exclude', $this->get_static('query_attrs')['sticky']);
 
 		foreach (['core/post-template', 'core/post-title', 'core/paragraph'] as $inner) {
 			$this->filter->pre_render(null, ['blockName' => $inner, 'attrs' => []]);
 		}
 
 		$this->assertTrue($this->get_static('is_sequential'));
-		$this->assertTrue($this->get_static('exclude_sticky'));
+		$this->assertSame('exclude', $this->get_static('query_attrs')['sticky']);
 	}
 
 	// ------------------------------------------------------------------
@@ -247,11 +248,11 @@ final class QueryFilterTest extends WP_UnitTestCase
 
 	public function test_filter_query_vars_exclude_sticky_filters_sticky_from_result(): void
 	{
-		// v1.2.0: query.excludeSticky=true must propagate to CanonicalList::get.
+		// v1.3.0: query.sticky='exclude' must propagate to CanonicalList::build.
 		$this->go_to(home_url('/'));
 
 		$parsed = $this->make_parsed_block();
-		$parsed['attrs']['query']['excludeSticky'] = true;
+		$parsed['attrs']['query']['sticky'] = 'exclude';
 		$parsed['attrs']['query']['perPage'] = 10;
 		$this->filter->pre_render(null, $parsed);
 
@@ -263,6 +264,47 @@ final class QueryFilterTest extends WP_UnitTestCase
 		}
 		// 6 total posts − 2 sticky = 4 non-sticky posts.
 		$this->assertCount(4, $result['post__in']);
+	}
+
+	public function test_filter_query_vars_exclude_mode_with_sticky_anchor_falls_back_to_first_n(): void
+	{
+		// Anchor IS a sticky. In 'exclude' mode the canonical list has no stickies,
+		// so the resolver can't find the anchor. Our non-singular / empty fallback
+		// must still return the first N items of the filtered canonical list.
+		$this->go_to(get_permalink($this->sticky_ids[0]));
+
+		$parsed = $this->make_parsed_block();
+		$parsed['attrs']['query']['sticky'] = 'exclude';
+		$this->filter->pre_render(null, $parsed);
+
+		$block = $this->make_child_block(['postType' => 'post', 'perPage' => 3]);
+		$result = $this->filter->filter_query_vars([], $block, 1);
+
+		// Non-stickies in date-ASC: post_ids[0], [2], [3], [5]. First 3:
+		$this->assertSame(
+			[$this->post_ids[0], $this->post_ids[2], $this->post_ids[3]],
+			$result['post__in']
+		);
+		foreach ($this->sticky_ids as $sticky_id) {
+			$this->assertNotContains($sticky_id, $result['post__in']);
+		}
+	}
+
+	public function test_filter_query_vars_only_mode_with_non_sticky_anchor_falls_back_to_first_n_stickies(): void
+	{
+		// Anchor is NOT sticky. In 'only' mode the canonical list is stickies-only,
+		// so the resolver returns the first N items of that list.
+		$this->go_to(get_permalink($this->post_ids[0]));
+
+		$parsed = $this->make_parsed_block();
+		$parsed['attrs']['query']['sticky'] = 'only';
+		$this->filter->pre_render(null, $parsed);
+
+		$block = $this->make_child_block(['postType' => 'post', 'perPage' => 3]);
+		$result = $this->filter->filter_query_vars([], $block, 1);
+
+		// Stickies in date-ASC order: [sticky_ids[0], sticky_ids[1]]
+		$this->assertSame($this->sticky_ids, $result['post__in']);
 	}
 
 	// ------------------------------------------------------------------
@@ -289,7 +331,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 		add_filter('query_loop_block_query_vars', [$this->filter, 'filter_query_vars'], 10, 3);
 
 		try {
-			$markup = '<!-- wp:query {"namespace":"next-posts-block/query","query":{"postType":"post","perPage":3,"inherit":false,"orderBy":"date","order":"asc","excludeSticky":false}} -->'
+			$markup = '<!-- wp:query {"namespace":"next-posts-block/query","query":{"postType":"post","perPage":3,"inherit":false,"orderBy":"date","order":"asc","sticky":"ignore"}} -->'
 				. '<!-- wp:post-template -->'
 				. '<!-- wp:post-title /-->'
 				. '<!-- /wp:post-template -->'
@@ -361,8 +403,12 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$request = new WP_REST_Request('GET', '/wp/v2/posts');
 		$request->set_param('sequential_block', '1');
 		$request->set_param('sequential_context_post', (string) $this->post_ids[2]);
-		$request->set_param('sequential_orderby', 'date');
-		$request->set_param('sequential_order', 'asc');
+		$request->set_param('sequential_query_attrs', json_encode([
+			'postType' => 'post',
+			'orderBy'  => 'date',
+			'order'    => 'asc',
+			'sticky'   => 'ignore',
+		]));
 
 		$result = $this->filter->filter_rest_query(
 			'post',
@@ -385,6 +431,10 @@ final class QueryFilterTest extends WP_UnitTestCase
 		// Editor-template preview case: marker present, no context post.
 		$request = new WP_REST_Request('GET', '/wp/v2/posts');
 		$request->set_param('sequential_block', '1');
+		$request->set_param('sequential_query_attrs', json_encode([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+		]));
 
 		$result = $this->filter->filter_rest_query('post', ['posts_per_page' => 3], $request);
 
@@ -399,7 +449,10 @@ final class QueryFilterTest extends WP_UnitTestCase
 	{
 		$request = new WP_REST_Request('GET', '/wp/v2/posts');
 		$request->set_param('sequential_block', '1');
-		$request->set_param('sequential_exclude_sticky', '1');
+		$request->set_param('sequential_query_attrs', json_encode([
+			'postType' => 'post',
+			'sticky'   => 'exclude',
+		]));
 
 		$result = $this->filter->filter_rest_query('post', ['posts_per_page' => 10], $request);
 
@@ -407,6 +460,20 @@ final class QueryFilterTest extends WP_UnitTestCase
 			$this->assertNotContains($sticky_id, $result['post__in']);
 		}
 		$this->assertCount(4, $result['post__in']);
+	}
+
+	public function test_rest_filter_decodes_sequential_query_attrs_json(): void
+	{
+		$request = new WP_REST_Request('GET', '/wp/v2/posts');
+		$request->set_param('sequential_block', '1');
+		$request->set_param('sequential_query_attrs', json_encode(['sticky' => 'only']));
+		$request->set_param('sequential_context_post', (string) $this->post_ids[1]); // a sticky
+
+		// sticky='only' canonical = [post_ids[1], post_ids[4]]. Anchor=post_ids[1]
+		// → next sticky = post_ids[4].
+		$result = $this->filter->filter_rest_query('post', ['posts_per_page' => 3], $request);
+
+		$this->assertSame($this->post_ids[4], $result['post__in'][0]);
 	}
 
 	// ------------------------------------------------------------------
@@ -426,6 +493,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 						'perPage' => 3,
 						'orderBy' => 'date',
 						'order' => 'asc',
+						'sticky' => 'ignore',
 					],
 				],
 				'innerBlocks' => [],
@@ -485,9 +553,7 @@ final class QueryFilterTest extends WP_UnitTestCase
 	{
 		$defaults = [
 			'is_sequential' => false,
-			'orderby' => 'date',
-			'order' => 'asc',
-			'exclude_sticky' => false,
+			'query_attrs' => [],
 		];
 		foreach ($defaults as $name => $value) {
 			$this->static_prop($name)->setValue(null, $value);

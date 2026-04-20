@@ -1,6 +1,6 @@
 {
     "name": "next-posts-block",
-    "version": "1.2.2",
+    "version": "1.3.0",
     "description": "Query Loop block variation: N posts following the current post in the chosen order, with wrap-around.",
     "main": "build/index.js",
     "private": true,
