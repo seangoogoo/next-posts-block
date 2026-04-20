@@ -74,6 +74,21 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame($expected, CanonicalList::get('post'));
 	}
 
+	public function test_build_with_empty_attrs_returns_all_published_post_ids_in_natural_order(): void
+	{
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
+		$expected = [
+			$this->post_ids[0], // Alpha
+			$this->post_ids[1], // Bravo (sticky)
+			$this->post_ids[2], // Charlie
+			$this->post_ids[3], // Delta
+			$this->post_ids[5], // Foxtrot (Echo @ draft excluded)
+			$this->post_ids[6], // Golf (sticky)
+			$this->post_ids[7], // Hotel
+		];
+		$this->assertSame($expected, $result);
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));
