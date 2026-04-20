@@ -89,6 +89,33 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame($expected, $result);
 	}
 
+	public function test_build_with_sticky_include_prepends_stickies_in_orderby(): void
+	{
+		// orderBy date ASC → base order Alpha, Bravo*, Charlie, Delta, Foxtrot, Golf*, Hotel
+		// Include mode → stickies first (Bravo, Golf), then non-stickies in natural order.
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => '']);
+		$expected = [
+			$this->post_ids[1], // Bravo   (sticky)
+			$this->post_ids[6], // Golf    (sticky)
+			$this->post_ids[0], // Alpha
+			$this->post_ids[2], // Charlie
+			$this->post_ids[3], // Delta
+			$this->post_ids[5], // Foxtrot
+			$this->post_ids[7], // Hotel
+		];
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_sticky_include_and_no_stickies_is_identical_to_ignore(): void
+	{
+		delete_option('sticky_posts');
+		wp_cache_flush();
+
+		$include = CanonicalList::build(['postType' => 'post', 'sticky' => '']);
+		$ignore  = CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
+		$this->assertSame($ignore, $include);
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));

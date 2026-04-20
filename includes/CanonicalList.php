@@ -98,6 +98,21 @@ final class CanonicalList
      */
     private static function apply_sticky_mode(array $ids, string $mode, array $args): array
     {
+        if ($mode === 'ignore' || empty($ids)) {
+            return $ids;
+        }
+
+        $sticky_option = array_map('intval', (array) get_option('sticky_posts', []));
+
+        if ($mode === '') {
+            if (empty($sticky_option)) {
+                return $ids;
+            }
+            $matching_stickies = array_values(array_intersect($ids, $sticky_option));
+            $non_stickies      = array_values(array_diff($ids, $matching_stickies));
+            return array_merge($matching_stickies, $non_stickies);
+        }
+
         return $ids;
     }
 
