@@ -63,11 +63,29 @@ final class CanonicalList
         $order_raw = strtoupper((string) ($query_attrs['order'] ?? 'ASC'));
         $sticky_raw = (string) ($query_attrs['sticky'] ?? '');
 
+        $tax_query_raw = $query_attrs['taxQuery'] ?? [];
+        $tax_query = [];
+        if (is_array($tax_query_raw)) {
+            foreach ($tax_query_raw as $taxonomy => $term_ids) {
+                if (!taxonomy_exists((string) $taxonomy)) {
+                    continue;
+                }
+                $ids = array_values(array_filter(
+                    array_map('intval', (array) $term_ids),
+                    static fn($id) => $id > 0
+                ));
+                if (!empty($ids)) {
+                    $tax_query[(string) $taxonomy] = $ids;
+                }
+            }
+        }
+
         return [
             'postType' => $post_type,
             'orderBy'  => in_array($orderby_raw, self::ALLOWED_ORDERBY, true) ? $orderby_raw : 'date',
             'order'    => in_array($order_raw, self::ALLOWED_ORDER, true) ? $order_raw : 'ASC',
             'sticky'   => in_array($sticky_raw, self::ALLOWED_STICKY, true) ? $sticky_raw : '',
+            'taxQuery' => $tax_query,
         ];
     }
 
@@ -77,7 +95,7 @@ final class CanonicalList
      */
     private static function build_query_args(array $n): array
     {
-        return [
+        $args = [
             'post_type'           => $n['postType'],
             'post_status'         => 'publish',
             'posts_per_page'      => -1,
@@ -88,6 +106,24 @@ final class CanonicalList
             'suppress_filters'    => true,
             'ignore_sticky_posts' => 1,
         ];
+
+        if (!empty($n['taxQuery'])) {
+            $clauses = [];
+            foreach ($n['taxQuery'] as $taxonomy => $term_ids) {
+                $clauses[] = [
+                    'taxonomy' => $taxonomy,
+                    'field'    => 'term_id',
+                    'terms'    => $term_ids,
+                    'operator' => 'IN',
+                ];
+            }
+            if (count($clauses) > 1) {
+                $clauses['relation'] = 'AND';
+            }
+            $args['tax_query'] = $clauses;
+        }
+
+        return $args;
     }
 
     /**

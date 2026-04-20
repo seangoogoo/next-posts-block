@@ -147,6 +147,49 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame([], CanonicalList::build(['postType' => 'post', 'sticky' => 'only']));
 	}
 
+	/** @return array{news:int, opinion:int} */
+	private function seed_categories(): array
+	{
+		$news_id = self::factory()->category->create(['name' => 'news']);
+		$opinion_id = self::factory()->category->create(['name' => 'opinion']);
+
+		wp_set_post_categories($this->post_ids[0], [$news_id]);    // Alpha    — news
+		wp_set_post_categories($this->post_ids[1], [$news_id]);    // Bravo    — news (sticky)
+		wp_set_post_categories($this->post_ids[2], [$opinion_id]); // Charlie  — opinion
+		wp_set_post_categories($this->post_ids[5], [$news_id]);    // Foxtrot  — news
+
+		wp_cache_flush();
+		return ['news' => $news_id, 'opinion' => $opinion_id];
+	}
+
+	public function test_build_with_tax_query_filters_by_category(): void
+	{
+		$cats = $this->seed_categories();
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+			'taxQuery' => ['category' => [$cats['news']]],
+		]);
+		$expected = [
+			$this->post_ids[0], // Alpha
+			$this->post_ids[1], // Bravo (sticky, still in 'news')
+			$this->post_ids[5], // Foxtrot
+		];
+		$this->assertSame($expected, $result);
+	}
+
+	public function test_build_with_tax_query_include_prepends_only_matching_stickies(): void
+	{
+		$cats = $this->seed_categories();
+		// Filter to 'opinion' — only Charlie matches. Golf (sticky) is NOT in 'opinion' → not prepended.
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => '', // Include
+			'taxQuery' => ['category' => [$cats['opinion']]],
+		]);
+		$this->assertSame([$this->post_ids[2]], $result);
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));
