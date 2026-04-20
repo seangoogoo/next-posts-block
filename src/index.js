@@ -6,6 +6,5 @@
  */
 
 import './variation';
-import './inspector-controls';
 import './rest-middleware';
 import './lock-custom-query';
