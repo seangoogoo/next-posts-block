@@ -266,6 +266,47 @@ final class QueryFilterTest extends WP_UnitTestCase
 		$this->assertCount(4, $result['post__in']);
 	}
 
+	public function test_filter_query_vars_exclude_mode_with_sticky_anchor_falls_back_to_first_n(): void
+	{
+		// Anchor IS a sticky. In 'exclude' mode the canonical list has no stickies,
+		// so the resolver can't find the anchor. Our non-singular / empty fallback
+		// must still return the first N items of the filtered canonical list.
+		$this->go_to(get_permalink($this->sticky_ids[0]));
+
+		$parsed = $this->make_parsed_block();
+		$parsed['attrs']['query']['sticky'] = 'exclude';
+		$this->filter->pre_render(null, $parsed);
+
+		$block = $this->make_child_block(['postType' => 'post', 'perPage' => 3]);
+		$result = $this->filter->filter_query_vars([], $block, 1);
+
+		// Non-stickies in date-ASC: post_ids[0], [2], [3], [5]. First 3:
+		$this->assertSame(
+			[$this->post_ids[0], $this->post_ids[2], $this->post_ids[3]],
+			$result['post__in']
+		);
+		foreach ($this->sticky_ids as $sticky_id) {
+			$this->assertNotContains($sticky_id, $result['post__in']);
+		}
+	}
+
+	public function test_filter_query_vars_only_mode_with_non_sticky_anchor_falls_back_to_first_n_stickies(): void
+	{
+		// Anchor is NOT sticky. In 'only' mode the canonical list is stickies-only,
+		// so the resolver returns the first N items of that list.
+		$this->go_to(get_permalink($this->post_ids[0]));
+
+		$parsed = $this->make_parsed_block();
+		$parsed['attrs']['query']['sticky'] = 'only';
+		$this->filter->pre_render(null, $parsed);
+
+		$block = $this->make_child_block(['postType' => 'post', 'perPage' => 3]);
+		$result = $this->filter->filter_query_vars([], $block, 1);
+
+		// Stickies in date-ASC order: [sticky_ids[0], sticky_ids[1]]
+		$this->assertSame($this->sticky_ids, $result['post__in']);
+	}
+
 	// ------------------------------------------------------------------
 	// Full render pipeline (regression guard)
 	// ------------------------------------------------------------------

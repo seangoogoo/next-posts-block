@@ -201,6 +201,34 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame([$this->post_ids[0]], $result);
 	}
 
+	public function test_build_exclude_with_author_filter(): void
+	{
+		// Exclude mode + author filter — interaction
+		$editor_id = self::factory()->user->create(['role' => 'editor']);
+		wp_update_post(['ID' => $this->post_ids[3], 'post_author' => $editor_id]); // Delta
+		wp_update_post(['ID' => $this->post_ids[6], 'post_author' => $editor_id]); // Golf (sticky)
+		wp_cache_flush();
+
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'exclude',
+			'author'   => (string) $editor_id,
+		]);
+		// Editor wrote Delta + Golf; sticky exclude removes Golf → only Delta
+		$this->assertSame([$this->post_ids[3]], $result);
+	}
+
+	public function test_build_only_with_search_filter(): void
+	{
+		// 'only' mode + search — intersection of stickies and keyword
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'only',
+			'search'   => 'Bravo', // matches sticky Bravo, not Golf
+		]);
+		$this->assertSame([$this->post_ids[1]], $result);
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'ignore']);
