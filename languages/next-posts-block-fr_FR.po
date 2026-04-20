@@ -63,18 +63,3 @@ msgstr "séquence"
 #: build/index.js:1 src/variation.js:27
 msgid "related"
 msgstr "connexe"
-
-#: build/index.js:1 src/inspector-controls.js:48
-msgid "Sequential settings"
-msgstr "Réglages de séquence"
-
-#: build/index.js:1 src/inspector-controls.js:56
-msgid "Exclude sticky posts from the sequence"
-msgstr "Exclure les publications épinglées de la séquence"
-
-#: build/index.js:1 src/inspector-controls.js:60
-msgid ""
-"Sticky posts are removed from the canonical list used to build the sequence."
-msgstr ""
-"Les publications épinglées sont retirées de la liste canonique utilisée pour "
-"construire la séquence."

@@ -58,18 +58,3 @@ msgstr ""
 #: src/variation.js:27
 msgid "related"
 msgstr ""
-
-#: build/index.js:1
-#: src/inspector-controls.js:48
-msgid "Sequential settings"
-msgstr ""
-
-#: build/index.js:1
-#: src/inspector-controls.js:56
-msgid "Exclude sticky posts from the sequence"
-msgstr ""
-
-#: build/index.js:1
-#: src/inspector-controls.js:60
-msgid "Sticky posts are removed from the canonical list used to build the sequence."
-msgstr ""
