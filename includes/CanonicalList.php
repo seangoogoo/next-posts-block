@@ -63,6 +63,8 @@ final class CanonicalList
         $order_raw = strtoupper((string) ($query_attrs['order'] ?? 'ASC'));
         $sticky_raw = (string) ($query_attrs['sticky'] ?? '');
 
+        $search = trim((string) ($query_attrs['search'] ?? ''));
+
         $author_raw = (string) ($query_attrs['author'] ?? '');
         $author = array_values(array_filter(
             array_map('intval', $author_raw === '' ? [] : explode(',', $author_raw)),
@@ -93,6 +95,7 @@ final class CanonicalList
             'sticky'   => in_array($sticky_raw, self::ALLOWED_STICKY, true) ? $sticky_raw : '',
             'taxQuery' => $tax_query,
             'author'   => $author,
+            'search'   => $search,
         ];
     }
 
@@ -116,6 +119,10 @@ final class CanonicalList
 
         if (!empty($n['author'])) {
             $args['author__in'] = $n['author'];
+        }
+
+        if ($n['search'] !== '') {
+            $args['s'] = $n['search'];
         }
 
         if (!empty($n['taxQuery'])) {

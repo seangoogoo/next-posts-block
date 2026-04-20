@@ -205,6 +205,16 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame([$this->post_ids[3], $this->post_ids[5]], $result);
 	}
 
+	public function test_build_with_search_filters_by_keyword(): void
+	{
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+			'search'   => 'Alpha',
+		]);
+		$this->assertSame([$this->post_ids[0]], $result);
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));
