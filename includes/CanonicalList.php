@@ -113,6 +113,13 @@ final class CanonicalList
             return array_merge($matching_stickies, $non_stickies);
         }
 
+        if ($mode === 'exclude') {
+            if (empty($sticky_option)) {
+                return $ids;
+            }
+            return array_values(array_diff($ids, $sticky_option));
+        }
+
         return $ids;
     }
 

@@ -116,6 +116,19 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame($ignore, $include);
 	}
 
+	public function test_build_with_sticky_exclude_removes_sticky_ids(): void
+	{
+		$result = CanonicalList::build(['postType' => 'post', 'sticky' => 'exclude']);
+		$expected = [
+			$this->post_ids[0], // Alpha
+			$this->post_ids[2], // Charlie
+			$this->post_ids[3], // Delta
+			$this->post_ids[5], // Foxtrot
+			$this->post_ids[7], // Hotel
+		];
+		$this->assertSame($expected, $result);
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));
