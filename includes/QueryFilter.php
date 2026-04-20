@@ -104,7 +104,12 @@ final class QueryFilter
 
         // Build canonical list with the user's chosen sort order.
         // Resolver always goes forward — the list order defines "next".
-        $all_ids = CanonicalList::get($post_type, self::$orderby, self::$order, $exclude_sticky);
+        $all_ids = CanonicalList::build([
+            'postType' => $post_type,
+            'orderBy'  => self::$orderby,
+            'order'    => self::$order,
+            'sticky'   => $exclude_sticky ? 'exclude' : 'ignore',
+        ]);
 
         $current_id = (new ContextDetector())->current_post_id();
         $resolved = $current_id === null
@@ -152,7 +157,12 @@ final class QueryFilter
         $raw_count = (int) ($args['posts_per_page'] ?? 3);
         $count = max(self::MIN_COUNT, min(self::MAX_COUNT, $raw_count));
 
-        $all_ids = CanonicalList::get($post_type, $orderby, $order, $exclude_sticky);
+        $all_ids = CanonicalList::build([
+            'postType' => $post_type,
+            'orderBy'  => $orderby,
+            'order'    => $order,
+            'sticky'   => $exclude_sticky ? 'exclude' : 'ignore',
+        ]);
         $resolved = $context_post
             ? (new SequentialResolver())->resolve($all_ids, $context_post, 'asc', $count)
             : array_slice($all_ids, 0, $count);
