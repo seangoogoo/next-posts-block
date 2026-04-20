@@ -190,6 +190,21 @@ final class CanonicalListTest extends WP_UnitTestCase
 		$this->assertSame([$this->post_ids[2]], $result);
 	}
 
+	public function test_build_with_author_filter_restricts_to_csv_of_user_ids(): void
+	{
+		$editor_id = self::factory()->user->create(['role' => 'editor']);
+		wp_update_post(['ID' => $this->post_ids[3], 'post_author' => $editor_id]);
+		wp_update_post(['ID' => $this->post_ids[5], 'post_author' => $editor_id]);
+		wp_cache_flush();
+
+		$result = CanonicalList::build([
+			'postType' => 'post',
+			'sticky'   => 'ignore',
+			'author'   => (string) $editor_id,
+		]);
+		$this->assertSame([$this->post_ids[3], $this->post_ids[5]], $result);
+	}
+
 	public function test_excludes_draft_posts(): void
 	{
 		$this->assertNotContains($this->post_ids[4], CanonicalList::get('post'));

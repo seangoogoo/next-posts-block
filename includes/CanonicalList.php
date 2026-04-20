@@ -63,6 +63,12 @@ final class CanonicalList
         $order_raw = strtoupper((string) ($query_attrs['order'] ?? 'ASC'));
         $sticky_raw = (string) ($query_attrs['sticky'] ?? '');
 
+        $author_raw = (string) ($query_attrs['author'] ?? '');
+        $author = array_values(array_filter(
+            array_map('intval', $author_raw === '' ? [] : explode(',', $author_raw)),
+            static fn($id) => $id > 0
+        ));
+
         $tax_query_raw = $query_attrs['taxQuery'] ?? [];
         $tax_query = [];
         if (is_array($tax_query_raw)) {
@@ -86,6 +92,7 @@ final class CanonicalList
             'order'    => in_array($order_raw, self::ALLOWED_ORDER, true) ? $order_raw : 'ASC',
             'sticky'   => in_array($sticky_raw, self::ALLOWED_STICKY, true) ? $sticky_raw : '',
             'taxQuery' => $tax_query,
+            'author'   => $author,
         ];
     }
 
@@ -106,6 +113,10 @@ final class CanonicalList
             'suppress_filters'    => true,
             'ignore_sticky_posts' => 1,
         ];
+
+        if (!empty($n['author'])) {
+            $args['author__in'] = $n['author'];
+        }
 
         if (!empty($n['taxQuery'])) {
             $clauses = [];
