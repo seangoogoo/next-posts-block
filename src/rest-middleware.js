@@ -1,9 +1,9 @@
 /**
- * apiFetch middleware: appends the sequential_block marker plus sort params
- * (and sequential_context_post when available) to REST calls so the editor
- * preview reflects the correct sequential posts. When no context post is
- * available (e.g. editing a template), the server falls back to the first
- * N items of the canonical list — same behavior as the frontend.
+ * apiFetch middleware: attaches the Next Posts block's full native `query`
+ * attrs (as a single JSON param) and the sequential marker to REST calls,
+ * so the editor preview resolves against the same CanonicalList used on
+ * the frontend. Falls back to the first N canonical items when no context
+ * post is available (template editing).
  */
 
 import apiFetch from '@wordpress/api-fetch';
@@ -13,12 +13,11 @@ const NAMESPACE = 'next-posts-block/query';
 const POST_TYPE_REST_PATTERN = /\/wp\/v2\/([a-z0-9_-]+)(\?|$)/i;
 
 /**
- * Recursively finds the first Next Posts block in the editor and
- * returns its orderBy / order / excludeSticky. Returns null if the variation
- * is absent from the block tree — signals that this REST call is NOT ours
- * to augment.
+ * Recursively finds the first Next Posts block in the editor tree and
+ * returns its native `query` attributes bag. Returns null when the
+ * variation is not present — signals this REST call is not ours to augment.
  */
-function findSequentialSettings() {
+function findSequentialAttrs() {
 	const blocks = select( 'core/block-editor' )?.getBlocks() ?? [];
 
 	function findInBlocks( blockList ) {
@@ -27,13 +26,7 @@ function findSequentialSettings() {
 				block.name === 'core/query' &&
 				block.attributes?.namespace === NAMESPACE
 			) {
-				return {
-					orderby: block.attributes.query?.orderBy ?? 'date',
-					order: block.attributes.query?.order ?? 'asc',
-					excludeSticky: Boolean(
-						block.attributes.query?.excludeSticky
-					),
-				};
+				return block.attributes.query ?? {};
 			}
 			if ( block.innerBlocks?.length ) {
 				const found = findInBlocks( block.innerBlocks );
@@ -54,8 +47,8 @@ apiFetch.use( ( options, next ) => {
 		return next( options );
 	}
 
-	const settings = findSequentialSettings();
-	if ( ! settings ) {
+	const attrs = findSequentialAttrs();
+	if ( ! attrs ) {
 		return next( options );
 	}
 
@@ -66,12 +59,10 @@ apiFetch.use( ( options, next ) => {
 	const currentPostId = select( 'core/editor' )?.getCurrentPostId();
 	const params = [
 		'sequential_block=1',
-		`sequential_orderby=${ encodeURIComponent( settings.orderby ) }`,
-		`sequential_order=${ encodeURIComponent( settings.order ) }`,
+		`sequential_query_attrs=${ encodeURIComponent(
+			JSON.stringify( attrs )
+		) }`,
 	];
-	if ( settings.excludeSticky ) {
-		params.push( 'sequential_exclude_sticky=1' );
-	}
 	if ( currentPostId ) {
 		params.push( `sequential_context_post=${ currentPostId }` );
 	}
