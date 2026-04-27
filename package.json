@@ -10,15 +10,14 @@
         "languages/**",
         "next-posts-block.php",
         "LICENSE",
-        "readme.txt",
-        ".distignore"
+        "readme.txt"
     ],
     "scripts": {
         "build": "wp-scripts build",
         "start": "wp-scripts start",
         "lint:js": "wp-scripts lint-js src",
         "format": "wp-scripts format src",
-        "plugin-zip": "wp-scripts plugin-zip"
+        "plugin-zip": "wp-scripts plugin-zip && zip -d next-posts-block.zip package.json README.md"
     },
     "devDependencies": {
         "@wordpress/scripts": "^27.0.0"
